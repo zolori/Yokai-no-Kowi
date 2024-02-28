@@ -4,16 +4,26 @@ namespace _Code._Script
 {
     public class Tile : MonoBehaviour
     {
-        // Start is called before the first frame update
-        void Start()
-        {
+        [SerializeField] private Color baseColor;
+        [SerializeField] private Color hoveringColor;
         
+        public Vector2 position;
+        public Piece piece;
+
+        private void OnMouseEnter()
+        {
+            // TODO: SET HIGHLIGHT COLOR
         }
 
-        // Update is called once per frame
-        void Update()
+        private void OnMouseExit()
         {
+            // TODO : REMOVE HIGHLIGHT COLOR
+        }
         
+        public void DragEnd(Piece iPiece)
+        {
+            // TODO : CALL THE MOVE FUNCTION FROM THE GAME MANAGER
+            GameManager.Instance.Move(iPiece, this);
         }
     }
 }
