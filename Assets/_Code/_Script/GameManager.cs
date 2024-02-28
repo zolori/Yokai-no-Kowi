@@ -6,7 +6,6 @@ namespace _Code._Script
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private Tile[][] _board;
-        [SerializeField] private Piece draggedPiece;
         
         private List<Piece> _pile;
         private Player _currPlayer, _player1, _player2;
