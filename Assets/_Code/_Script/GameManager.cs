@@ -14,7 +14,7 @@ namespace _Code._Script
 
         public static GameManager Instance;
 
-        public struct Player
+/*        public struct Player
         {
             public string Name;
             public List<Piece> Pioche;
@@ -24,7 +24,7 @@ namespace _Code._Script
                 Name = iName;
             }
         }
-
+*/
         private void Awake()
         {
             if (Instance != null)
@@ -42,8 +42,8 @@ namespace _Code._Script
         {
             // TODO: Set prefab piece to position
 
-            _player1 = new Player("player1");
-            _player2 = new Player("player2");
+            _player1 = new Human();
+            _player2 = new Human();
             _currPlayer = _player1;
         }
 
