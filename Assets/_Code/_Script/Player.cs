@@ -8,6 +8,7 @@ namespace _Code._Script
     public interface Player
     {
         string Name { get; set; }
+        List<Piece> Pioche { get; set; }
 
         public Tile Play();
     }

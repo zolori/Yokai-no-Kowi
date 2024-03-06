@@ -5,6 +5,7 @@ namespace _Code._Script
     public class DragAndDrop : MonoBehaviour
     {
         private Vector3 _mousePosition;
+        private bool bIsYourTurn;
 
         private Vector3 GetMousePosition()
         {
@@ -54,6 +55,11 @@ namespace _Code._Script
             var xPos = gameObject.transform.position.x;
             var yPos = gameObject.transform.position.y;
             gameObject.transform.position = new Vector3(xPos, yPos, 0f);
+        }
+
+        private bool IsYourTurn()
+        {
+            
         }
     }
 }

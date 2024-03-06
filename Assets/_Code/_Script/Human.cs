@@ -7,9 +7,8 @@ namespace _Code._Script
 {
     public class Human : Player
     {
-        public Action playerDroppedPieceCallback;
-
         public string Name { get; set; }
+        List<Piece> Player.Pioche { get; set; }
 
         Tile Player.Play()
         {
