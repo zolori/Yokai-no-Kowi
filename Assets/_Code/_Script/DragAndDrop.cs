@@ -13,8 +13,14 @@ namespace _Code._Script
 
         private void OnMouseDown()
         {
-            _mousePosition = Input.mousePosition - GetMousePosition();
+            // /!\ Without this, the drag and drop can break
+            var xPos = gameObject.transform.position.x;
+            var yPos = gameObject.transform.position.y;
+            gameObject.transform.position = new Vector3(xPos, yPos, -1f);
             GameManager.Instance.currSelectedPiece = gameObject;
+            gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
+            
+            _mousePosition = Input.mousePosition - GetMousePosition();
         }
 
         private void OnMouseDrag()
@@ -32,15 +38,22 @@ namespace _Code._Script
             // Filtrer les résultats pour ignorer le premier objet touché
             foreach (RaycastHit2D hit in hits)
             {
-                if (hit.collider.gameObject != this.gameObject)
+                    GameObject dropArea = hit.collider.gameObject;
+                    Debug.Log("GameObject sous la souris : " + dropArea.name);
+                if (hit.collider.gameObject.GetComponent<Piece>() == null)
                 {
                     // Vous avez trouvé le GameObject sous le pointeur de la souris
-                    GameObject dropArea = hit.collider.gameObject;
-                    //Debug.Log("GameObject sous la souris : " + dropArea.name);
-                    dropArea.GetComponent<Tile>().DragEnd(gameObject.GetComponent<Piece>());
+                    GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
+                    GameManager.Instance.currSelectedPiece = null;
                     break;
                 }
             }
+            
+            // /!\ Without this, the drag and drop can break
+            gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
+            var xPos = gameObject.transform.position.x;
+            var yPos = gameObject.transform.position.y;
+            gameObject.transform.position = new Vector3(xPos, yPos, 0f);
         }
     }
 }

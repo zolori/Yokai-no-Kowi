@@ -10,11 +10,18 @@ namespace _Code._Script
         public Vector2 position;
         public Piece piece;
 
-        private void OnMouseEnter()
+        private void Start()
         {
-            if (GameManager.Instance.currSelectedPiece == null)
-                return;
+            position = transform.position;
+        }
 
+        public void SetHoveringColor()
+        {
+            Debug.Log("Tile Enter "+ position.x+", "+ position.y);
+            if (GameManager.Instance.currSelectedPiece == null || 
+                GameManager.Instance.currSelectedPiece.GetComponentInParent<Tile>() == this)
+                return;
+            
             if (GameManager.Instance.CanMove(GameManager.Instance.currSelectedPiece.GetComponent<Piece>(), this) 
                 || GameManager.Instance.currSelectedPiece.GetComponent<Piece>().bIsFromPile)
             {
@@ -22,11 +29,12 @@ namespace _Code._Script
             }
             else
             {
+                Debug.Log("help");
                 GetComponent<SpriteRenderer>().color = redHoveringColor;
             }
         }
-
-        private void OnMouseExit()
+        
+        public void SetBaseColor()
         {
             GetComponent<SpriteRenderer>().color = baseColor;
         }
@@ -37,7 +45,7 @@ namespace _Code._Script
         /// <param name="iPiece"></param>
         public void DragEnd(Piece iPiece)
         {
-            GameManager.Instance.Move(iPiece, this);
+            GameManager.Instance.currSelectedPiece = null;
         }
     }
 }
