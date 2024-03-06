@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -7,7 +8,8 @@ namespace _Code._Script
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private Tile[][] _board;
-
+        [SerializeField] private GameObject Kodama, Tanuki, Koropokkuru, kitsune;
+        
         private List<Piece> _pile;
         private Player _currPlayer, _player1, _player2;
         public GameObject currSelectedPiece;
@@ -42,6 +44,17 @@ namespace _Code._Script
         {
             // TODO: Set prefab piece to position
 
+            Instantiate(kitsune, new Vector3(0, 0, -1), quaternion.identity);
+            Instantiate(Koropokkuru, new Vector3(1, 0, -1), quaternion.identity);
+            Instantiate(Tanuki, new Vector3(2, 0, -1), quaternion.identity);
+            Instantiate(Kodama, new Vector3(1, 1, -1), quaternion.identity);
+            
+            Instantiate(kitsune, new Vector3(2, 3, -1), Quaternion.Euler(0, 0, 180));
+            Instantiate(Koropokkuru, new Vector3(1, 3, -1), Quaternion.Euler(0, 0, 180));
+            Instantiate(Tanuki, new Vector3(0, 3, -1), Quaternion.Euler(0, 0, 180));
+            Instantiate(Kodama, new Vector3(1, 2, -1), Quaternion.Euler(0, 0, 180));
+            
+            
             _player1 = new Player("player1");
             _player2 = new Player("player2");
             _currPlayer = _player1;
