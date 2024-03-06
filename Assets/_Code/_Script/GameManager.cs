@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
@@ -85,37 +84,48 @@ namespace _Code._Script
         /// <returns></returns>
         public bool CanMove(Piece iPiece, Tile iTile)
         {
-            // CAN MOVE HERE ?
-            // IF YES : RETURN YES
+            Vector2 currVectorMovement =
+                CalculateVectorDirection(iPiece.GetComponentInParent<Tile>().transform, iTile.transform);
+
+            if (iPiece.transform.rotation.z != 0)
+                currVectorMovement *= -1;
+            foreach (var movement in iPiece.VectorMovements)
+            {
+                if (currVectorMovement == movement)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
         /// <summary>
         /// TO MOVE A PIECE FROM A TILE TO AN OTHER TILE WHILE DOING SOME CHECK
         /// </summary>
-        /// <param name="MyPiece"></param>
-        /// <param name="nextTile"></param>
-        public void Move(Piece MyPiece, Tile nextTile)
+        /// <param name="iMyPiece"></param>
+        /// <param name="iNextTile"></param>
+        public void Move(Piece iMyPiece, Tile iNextTile)
         {
-            if (nextTile.piece != null && CanMove(MyPiece, nextTile) && !MyPiece.bIsFromPile)
+            if (iNextTile.piece != null && CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
             {
-                if (nextTile.piece.Player.Name != _currPlayer.Name)
+                if (iNextTile.piece.Player.Name != _currPlayer.Name)
                 {
-                    Eat(nextTile.piece);
+                    Eat(iNextTile.piece);
                 }
-                SetPieceAndMoveToParent(MyPiece, nextTile);
-                playerDroppedPieceCallback?.Invoke(nextTile);
+                SetPieceAndMoveToParent(iMyPiece, iNextTile);
+                playerDroppedPieceCallback?.Invoke(iNextTile);
 
-                nextTile.piece = MyPiece;
+                iNextTile.piece = iMyPiece;
             }
-            else if (MyPiece.bIsFromPile && nextTile.piece == null)
+            else if (iMyPiece.bIsFromPile && iNextTile.piece == null)
             {
-                SetPieceAndMoveToParent(MyPiece, nextTile);
-                playerDroppedPieceCallback?.Invoke(nextTile);
+                SetPieceAndMoveToParent(iMyPiece, iNextTile);
+                playerDroppedPieceCallback?.Invoke(iNextTile);
             }
             else
             {
-                SetPieceAndMoveToParent(MyPiece, MyPiece.GetComponentInParent<Tile>());
+                SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
             }
 
         }
@@ -158,17 +168,29 @@ namespace _Code._Script
         /// <summary>
         /// SET THE PIECE PARENT AND SET THE PIECE POSITION TO THE PARENT POSITION
         /// </summary>
-        /// <param name="MyPiece"></param>
-        /// <param name="nextTile"></param>
-        public void SetPieceAndMoveToParent(Piece MyPiece, Tile nextTile)
+        /// <param name="iMyPiece"></param>
+        /// <param name="iNextTile"></param>
+        public void SetPieceAndMoveToParent(Piece iMyPiece, Tile iNextTile)
         {
-            var pieceTransform = MyPiece.transform;
-            var tileTransform = nextTile.gameObject.transform;
-            pieceTransform.parent = tileTransform;              // Set parent
-            pieceTransform.position = tileTransform.position;   // Move to parent
-            nextTile.piece = MyPiece;                           // Put the piece in the tile
+            var pieceTransform = iMyPiece.transform;
+            var tileTransform = iNextTile.gameObject.transform;
+            pieceTransform.parent = tileTransform; // Set parent
+            pieceTransform.position = tileTransform.position; // Move to parent
+            iNextTile.piece = iMyPiece; // Put the piece in the tile
         }
 
+        /// <summary>
+        /// CLACULATE THE VECTOR DIRECTION OF WHERE THE PLAYER WANT TO MOVE THE PIECE
+        /// </summary>
+        /// <param name="iPreviousTile"></param>
+        /// <param name="iNextTile"></param>
+        /// <returns></returns>
+        private Vector2 CalculateVectorDirection(Transform iPreviousTile, Transform iNextTile)
+        {
+            float x = iNextTile.position.x - iPreviousTile.position.x;
+            float y = iNextTile.position.y - iPreviousTile.position.y;
 
+            return new Vector2(x, y);
+        }
     }
 }

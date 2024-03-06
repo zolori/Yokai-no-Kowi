@@ -59,7 +59,7 @@ namespace _Code._Script
 
         private bool IsYourTurn()
         {
-            
+            return false;
         }
     }
 }

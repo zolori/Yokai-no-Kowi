@@ -8,7 +8,9 @@ namespace _Code._Script
         private string _name;
         private Player _player;
         private Sprite _sprite;
-        
+
+        public Vector2[] VectorMovements { get; protected set; }
+
         public bool bIsFromPile = false;
 
         public Player Player

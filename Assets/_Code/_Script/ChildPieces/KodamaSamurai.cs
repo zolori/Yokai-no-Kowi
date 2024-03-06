@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace _Code._Script.ChildPieces
 {
     public class KodamaSamurai : Piece
@@ -5,13 +7,9 @@ namespace _Code._Script.ChildPieces
         // Start is called before the first frame update
         void Start()
         {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
+            VectorMovements = new[]
+                {new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1), new Vector2(-1, 0),
+                    new Vector2(1, 0), new Vector2(0, -1)};
         }
     }
 }
