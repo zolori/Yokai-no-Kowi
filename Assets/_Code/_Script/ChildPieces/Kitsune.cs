@@ -10,5 +10,10 @@ namespace _Code._Script.ChildPieces
             VectorMovements = new[]
                 {new Vector2(-1, 1), new Vector2(1, 1), new Vector2(-1, -1), new Vector2(1, -1)};
         }
+
+
+        public Kitsune(Player player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        {
+        }
     }
 }

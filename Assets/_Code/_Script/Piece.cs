@@ -6,8 +6,14 @@ namespace _Code._Script
     public abstract class Piece : MonoBehaviour
     {
         private string _name;
-        private Player _player;
+        [SerializeField] private Player _player;
         private Sprite _sprite;
+
+        protected Piece(Player player, Tile iTileToSpawn)
+        {
+            _player = player;
+            GameManager.Instance.SetPieceAndMoveToParent(this, iTileToSpawn);
+        }
 
         public Vector2[] VectorMovements { get; protected set; }
 

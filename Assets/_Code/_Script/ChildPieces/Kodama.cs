@@ -10,5 +10,9 @@ namespace _Code._Script.ChildPieces
             VectorMovements = new[]
                 {new Vector2(0, 1)};
         }
+
+        public Kodama(Player player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        {
+        }
     }
 }

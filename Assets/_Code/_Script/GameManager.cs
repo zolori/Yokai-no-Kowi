@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
+using _Code._Script.ChildPieces;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
     public class GameManager : MonoBehaviour
     {
-        [SerializeField] private Tile[][] _board;
-        [SerializeField] private GameObject Kodama, Tanuki, Koropokkuru, kitsune;
+        [SerializeField] private GameObject[] board;
+        [SerializeField] private GameObject Kodama, Tanuki, Koropokkuru, Kitsune;
 
         private List<Piece> _pile;
         public GameObject currSelectedPiece;
@@ -18,7 +20,7 @@ namespace _Code._Script
         #region Player
 
         private Player _currPlayer, _player1, _player2;
-        public static event Action<Tile> playerDroppedPieceCallback;
+        public static event Action<Tile> PlayerDroppedPieceCallback;
 
         #endregion
 
@@ -49,26 +51,44 @@ namespace _Code._Script
 
         private void InitGame()
         {
-            // TODO: Set prefab piece to position
-
-            Instantiate(kitsune, new Vector3(0, 0, -1), quaternion.identity);
-            Instantiate(Koropokkuru, new Vector3(1, 0, -1), quaternion.identity);
-            Instantiate(Tanuki, new Vector3(2, 0, -1), quaternion.identity);
-            Instantiate(Kodama, new Vector3(1, 1, -1), quaternion.identity);
-
-            Instantiate(kitsune, new Vector3(2, 3, -1), Quaternion.Euler(0, 0, 180));
-            Instantiate(Koropokkuru, new Vector3(1, 3, -1), Quaternion.Euler(0, 0, 180));
-            Instantiate(Tanuki, new Vector3(0, 3, -1), Quaternion.Euler(0, 0, 180));
-            Instantiate(Kodama, new Vector3(1, 2, -1), Quaternion.Euler(0, 0, 180));
-
-
             _player1 = new Human();
             _player2 = new Human();
 
             _player1.Name = "Gontrand";
             _player2.Name = "Didier";
-
+            
             _currPlayer = _player1;
+            
+            var kitsune1 = Instantiate(Kitsune, Vector3.one, quaternion.identity);
+            var koropokurru1 = Instantiate(Koropokkuru,Vector3.one, quaternion.identity);
+            var tanuki1 = Instantiate(Tanuki, Vector3.one, quaternion.identity);
+            var kodama1 = Instantiate(Kodama, Vector3.one, quaternion.identity);
+
+            var kitsune2 = Instantiate(Kitsune, Vector3.one, Quaternion.Euler(0, 0, 180));
+            var koropokurru2 = Instantiate(Koropokkuru, Vector3.one, Quaternion.Euler(0, 0, 180));
+            var tanuki2 = Instantiate(Tanuki, Vector3.one, Quaternion.Euler(0, 0, 180));
+            var kodama2 = Instantiate(Kodama, Vector3.one, Quaternion.Euler(0, 0, 180));
+
+            kitsune1.GetComponent<Piece>().Player = _player1;
+            tanuki1.GetComponent<Piece>().Player = _player1;
+            koropokurru1.GetComponent<Piece>().Player = _player1;
+            kodama1.GetComponent<Piece>().Player = _player1;
+            
+            kitsune2.GetComponent<Piece>().Player = _player2;
+            tanuki2.GetComponent<Piece>().Player = _player2;
+            koropokurru2.GetComponent<Piece>().Player = _player2;
+            kodama2.GetComponent<Piece>().Player = _player2;
+            
+            SetPieceAndMoveToParent(kitsune1.GetComponent<Piece>(), board[0].GetComponent<Tile>());
+            SetPieceAndMoveToParent(koropokurru1.GetComponent<Piece>(), board[1].GetComponent<Tile>());
+            SetPieceAndMoveToParent(tanuki1.GetComponent<Piece>(), board[2].GetComponent<Tile>());
+            SetPieceAndMoveToParent(kodama1.GetComponent<Piece>(), board[4].GetComponent<Tile>());
+            
+            SetPieceAndMoveToParent(kitsune2.GetComponent<Piece>(), board[11].GetComponent<Tile>());
+            SetPieceAndMoveToParent(koropokurru2.GetComponent<Piece>(), board[10].GetComponent<Tile>());
+            SetPieceAndMoveToParent(tanuki2.GetComponent<Piece>(), board[9].GetComponent<Tile>());
+            SetPieceAndMoveToParent(kodama2.GetComponent<Piece>(), board[7].GetComponent<Tile>());
+
         }
 
         private void Start()
@@ -79,24 +99,36 @@ namespace _Code._Script
         /// <summary>
         /// CHECK IF THE PLAYER CAN MOVE THE GIVEN PIECE ON THE GIVEN TILE
         /// </summary>
-        /// <param name="iPiece"></param>
-        /// <param name="iTile"></param>
+        /// <param name="iMyPiece"></param>
+        /// <param name="iNextTile"></param>
         /// <returns></returns>
-        public bool CanMove(Piece iPiece, Tile iTile)
+        public bool CanMove(Piece iMyPiece, Tile iNextTile)
         {
-            Vector2 currVectorMovement =
-                CalculateVectorDirection(iPiece.GetComponentInParent<Tile>().transform, iTile.transform);
+            
 
-            if (iPiece.transform.rotation.z != 0)
-                currVectorMovement *= -1;
-            foreach (var movement in iPiece.VectorMovements)
+            if (iMyPiece.Player == _currPlayer)
             {
-                if (currVectorMovement == movement)
+                if (iNextTile.piece != null)
                 {
-                    return true;
+                    if (iNextTile.piece.Player == _currPlayer)
+                        return false;
                 }
-            }
+                
+                Vector2 currVectorMovement =
+                    CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
+                if (iMyPiece.transform.rotation.z != 0)
+                    currVectorMovement *= -1;
+                foreach (var movement in iMyPiece.VectorMovements)
+                {
+                    if (currVectorMovement == movement)
+                    {
+                        Debug.Log(currVectorMovement);
+                        return true;
+                    }
+                }
+                Debug.Log(currVectorMovement);
+            }
             return false;
         }
 
@@ -107,21 +139,25 @@ namespace _Code._Script
         /// <param name="iNextTile"></param>
         public void Move(Piece iMyPiece, Tile iNextTile)
         {
-            if (iNextTile.piece != null && CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
+            if (CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
             {
-                if (iNextTile.piece.Player.Name != _currPlayer.Name)
+                if (iNextTile.piece != null)
                 {
-                    Eat(iNextTile.piece);
+                    if (iNextTile.piece.Player.Name != _currPlayer.Name)
+                        Eat(iNextTile.piece);
                 }
+
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                playerDroppedPieceCallback?.Invoke(iNextTile);
+                PlayerDroppedPieceCallback?.Invoke(iNextTile);
+                FinishTurn();
 
                 iNextTile.piece = iMyPiece;
             }
             else if (iMyPiece.bIsFromPile && iNextTile.piece == null)
             {
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                playerDroppedPieceCallback?.Invoke(iNextTile);
+                PlayerDroppedPieceCallback?.Invoke(iNextTile);
+                FinishTurn();
             }
             else
             {
@@ -134,7 +170,7 @@ namespace _Code._Script
         /// TO ADD THE CURRENT PIECE ON THE TILE INTO THE PLAYER'S PILE
         /// </summary>
         /// <param name="iPiece"></param>
-        public void Eat(Piece iPiece)
+        private void Eat(Piece iPiece)
         {
 
         }
