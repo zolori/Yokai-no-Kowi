@@ -1,17 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private Tile[][] _board;
-        
+
         private List<Piece> _pile;
         private Player _currPlayer, _player1, _player2;
-        
+        public GameObject currSelectedPiece;
+
         public static GameManager Instance;
-        
+
         public struct Player
         {
             public string Name;
@@ -22,7 +24,7 @@ namespace _Code._Script
                 Name = iName;
             }
         }
-        
+
         private void Awake()
         {
             if (Instance != null)
@@ -30,18 +32,19 @@ namespace _Code._Script
                 Destroy(gameObject);
                 return;
             }
+
             Instance = this;
         }
 
         private void InitGame()
         {
             // TODO: Set prefab piece to position
-            
+
             _player1 = new Player("player1");
             _player2 = new Player("player2");
             _currPlayer = _player1;
         }
-        
+
         private void Start()
         {
             InitGame();
@@ -59,7 +62,7 @@ namespace _Code._Script
             // IF YES : RETURN YES
             return false;
         }
-    
+
         /// <summary>
         /// TO MOVE A PIECE FROM A TILE TO AN OTHER TILE WHILE DOING SOME CHECK
         /// </summary>
@@ -73,14 +76,19 @@ namespace _Code._Script
                 {
                     Eat(iTile.piece);
                 }
-                // TODO: MOVE HERE
+                SetPieceAndMoveToParent(iPiece, iTile);
                 iTile.piece = iPiece;
             }
             else if (iPiece.bIsFromPile && iTile.piece == null)
             {
-                // TODO: MOVE HERE
+                SetPieceAndMoveToParent(iPiece, iTile);
                 iTile.piece = iPiece;
             }
+            else
+            {
+                SetPieceAndMoveToParent(iPiece, iPiece.GetComponentInParent<Tile>());
+            }
+            
         }
 
         /// <summary>
@@ -89,7 +97,7 @@ namespace _Code._Script
         /// <param name="iPiece"></param>
         public void Eat(Piece iPiece)
         {
-            
+
         }
 
         /// <summary>
@@ -97,7 +105,7 @@ namespace _Code._Script
         /// </summary>
         public void AirDrop()
         {
-            
+
         }
 
         /// <summary>
@@ -109,13 +117,26 @@ namespace _Code._Script
         {
             return iTile.position;
         }
-        
+
         /// <summary>
         /// TO UPDATE THE PLAYER CURRENTLY PLAYING AT THE END OF THE TURN
         /// </summary>
         private void FinishTurn()
         {
             _currPlayer = _currPlayer.Name == _player1.Name ? _player2 : _player1;
+        }
+
+        /// <summary>
+        /// SET THE PIECE PARENT AND SET THE PIECE POSITION TO THE PARENT POSITION
+        /// </summary>
+        /// <param name="iPiece"></param>
+        /// <param name="iTile"></param>
+        public void SetPieceAndMoveToParent(Piece iPiece, Tile iTile)
+        {
+            var pieceTransform = iPiece.transform;
+            var tileTransform = iTile.gameObject.transform;
+            pieceTransform.parent = tileTransform;              // Set parent
+            pieceTransform.position = tileTransform.position;   // Move to parent
         }
     }
 }

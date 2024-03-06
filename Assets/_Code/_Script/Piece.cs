@@ -15,6 +15,5 @@ namespace _Code._Script
             get => _player;
             set => _player = value;
         }
-
     }
 }

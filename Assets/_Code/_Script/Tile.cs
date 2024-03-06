@@ -1,28 +1,39 @@
+using System;
 using UnityEngine;
 
 namespace _Code._Script
 {
     public class Tile : MonoBehaviour
     {
-        [SerializeField] private Color baseColor;
-        [SerializeField] private Color hoveringColor;
+        [SerializeField] private Color baseColor, greenHoveringColor, redHoveringColor;
         
         public Vector2 position;
         public Piece piece;
 
         private void OnMouseEnter()
         {
-            // TODO: SET HIGHLIGHT COLOR
+            if (GameManager.Instance.currSelectedPiece != null && (GameManager.Instance.CanMove(GameManager.Instance.currSelectedPiece.GetComponent<Piece>(), this) ||
+                GameManager.Instance.currSelectedPiece.GetComponent<Piece>().bIsFromPile))
+            {
+                GetComponent<SpriteRenderer>().color = greenHoveringColor;
+            }
+            else
+            {
+                GetComponent<SpriteRenderer>().color = redHoveringColor;
+            }
         }
 
         private void OnMouseExit()
         {
-            // TODO : REMOVE HIGHLIGHT COLOR
+            GetComponent<SpriteRenderer>().color = baseColor;
         }
-        
+
+        /// <summary>
+        /// CALL THE MOVE FUNCTION FROM THE GAME MANAGER
+        /// </summary>
+        /// <param name="iPiece"></param>
         public void DragEnd(Piece iPiece)
         {
-            // TODO : CALL THE MOVE FUNCTION FROM THE GAME MANAGER
             GameManager.Instance.Move(iPiece, this);
         }
     }
