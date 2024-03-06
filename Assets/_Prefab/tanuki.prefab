@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 678428503281395364}
   - component: {fileID: -401479626819088476}
   - component: {fileID: -6086357415555944314}
+  - component: {fileID: -7825093508371748920}
   m_Layer: 0
   m_Name: tanuki
   m_TagString: Untagged
@@ -98,7 +99,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba07e5f29297d034dbd43bf6ec5af615, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tile: {fileID: 0}
 --- !u!61 &-6086357415555944314
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -144,3 +144,16 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.56, y: 2.56}
   m_EdgeRadius: 0
+--- !u!114 &-7825093508371748920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 335092307228472942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da2f445ff6c179438cd192a48330168, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bIsFromPile: 0

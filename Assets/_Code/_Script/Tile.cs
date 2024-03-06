@@ -12,8 +12,11 @@ namespace _Code._Script
 
         private void OnMouseEnter()
         {
-            if (GameManager.Instance.currSelectedPiece != null && (GameManager.Instance.CanMove(GameManager.Instance.currSelectedPiece.GetComponent<Piece>(), this) ||
-                GameManager.Instance.currSelectedPiece.GetComponent<Piece>().bIsFromPile))
+            if (GameManager.Instance.currSelectedPiece == null)
+                return;
+
+            if (GameManager.Instance.CanMove(GameManager.Instance.currSelectedPiece.GetComponent<Piece>(), this) 
+                || GameManager.Instance.currSelectedPiece.GetComponent<Piece>().bIsFromPile)
             {
                 GetComponent<SpriteRenderer>().color = greenHoveringColor;
             }

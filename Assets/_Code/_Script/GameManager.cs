@@ -32,8 +32,10 @@ namespace _Code._Script
                 Destroy(gameObject);
                 return;
             }
+            else
+                Instance = this;
 
-            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
 
         private void InitGame()
@@ -72,7 +74,7 @@ namespace _Code._Script
         {
             if (iTile.piece != null && CanMove(iPiece, iTile) && !iPiece.bIsFromPile)
             {
-                if (iPiece.Player != _currPlayer.Name)
+                if (iPiece.Player.Name != _currPlayer.Name)
                 {
                     Eat(iTile.piece);
                 }
@@ -88,7 +90,7 @@ namespace _Code._Script
             {
                 SetPieceAndMoveToParent(iPiece, iPiece.GetComponentInParent<Tile>());
             }
-            
+
         }
 
         /// <summary>

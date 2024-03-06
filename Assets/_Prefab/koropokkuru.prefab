@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3573066016705087906}
   - component: {fileID: 4042571551005809446}
   - component: {fileID: -5117419124827370530}
+  - component: {fileID: 3923462245030516711}
   m_Layer: 0
   m_Name: koropokkuru
   m_TagString: Untagged
@@ -98,7 +99,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba07e5f29297d034dbd43bf6ec5af615, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tile: {fileID: 0}
 --- !u!61 &-5117419124827370530
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -144,3 +144,16 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 2.56, y: 2.56}
   m_EdgeRadius: 0
+--- !u!114 &3923462245030516711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6859304262610377446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4148e66bce0e7f949b19953c5380f917, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bIsFromPile: 0

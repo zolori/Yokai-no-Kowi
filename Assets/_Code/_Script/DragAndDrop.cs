@@ -14,12 +14,12 @@ namespace _Code._Script
         private void OnMouseDown()
         {
             _mousePosition = Input.mousePosition - GetMousePosition();
+            GameManager.Instance.currSelectedPiece = gameObject;
         }
 
         private void OnMouseDrag()
         {
             transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition - _mousePosition);
-            GameManager.Instance.currSelectedPiece = gameObject;
         }
 
         private void OnMouseUp()
