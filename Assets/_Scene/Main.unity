@@ -1478,13 +1478,12 @@ MonoBehaviour:
   - {fileID: 726514375}
   - {fileID: 1461900323}
   - {fileID: 1797920259}
-  Kodama: {fileID: 2901975013613439113, guid: e799c359dd97bdb43a2792f94943cbe3, type: 3}
-  Tanuki: {fileID: 335092307228472942, guid: 07c4abf8c1155b144bdf07a8b7e63bbd, type: 3}
-  Koropokkuru: {fileID: 6859304262610377446, guid: 20332c24df3afaa40b2fcc57ca9cdcfb, type: 3}
-  Kitsune: {fileID: 1772200006540059436, guid: 51462ac038d17e54c82c5265fdd59152, type: 3}
+  kodama: {fileID: 2901975013613439113, guid: e799c359dd97bdb43a2792f94943cbe3, type: 3}
+  tanuki: {fileID: 335092307228472942, guid: 07c4abf8c1155b144bdf07a8b7e63bbd, type: 3}
+  koropokkuru: {fileID: 6859304262610377446, guid: 20332c24df3afaa40b2fcc57ca9cdcfb, type: 3}
+  kitsune: {fileID: 1772200006540059436, guid: 51462ac038d17e54c82c5265fdd59152, type: 3}
+  kodamaSamurai: {fileID: 2901975013613439113, guid: 1cba5a43f8755cd45a6d01de85a32789, type: 3}
   currSelectedPiece: {fileID: 0}
-  nextEmptyTileInPileJ1: 0
-  nextEmptyTileInPileJ2: 0
 --- !u!4 &1611391633
 Transform:
   m_ObjectHideFlags: 0
