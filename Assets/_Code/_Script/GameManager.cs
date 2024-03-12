@@ -1,40 +1,23 @@
-using System;
-using System.Collections.Generic;
 using _Code._Script.ChildPieces;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private GameObject[] board, _pileJ1, _pileJ2;
-        [SerializeField] private GameObject Kodama, Tanuki, Koropokkuru, Kitsune;
+        [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
 
         public GameObject currSelectedPiece;
-        public int nextEmptyTileInPileJ1 = 0, nextEmptyTileInPileJ2 = 0;
 
         #region Player
 
         private Player _currPlayer, _player1, _player2;
-        private int nbOfPlayer = 0;
 
         #endregion
 
         public static GameManager Instance;
-
-        /*        public struct Player
-                {
-                    public string Name;
-                    public List<Piece> Pioche;
-
-                    public Player(string iName = "BOT") : this()
-                    {
-                        Name = iName;
-                    }
-                }
-        */
 
         private void Awake()
         {
@@ -57,17 +40,30 @@ namespace _Code._Script
             _player1.Name = "Gontrand";
             _player2.Name = "Didier";
 
+            _player1.EnemyLastLine = new []
+            {
+                board[9],
+                board[10],
+                board[11]
+            };
+            _player2.EnemyLastLine = new []
+            {
+                board[0],
+                board[1],
+                board[2]
+            };
+            
             _currPlayer = _player1;
 
-            var kitsune1 = Instantiate(Kitsune, Vector3.zero, quaternion.identity);
-            var koropokurru1 = Instantiate(Koropokkuru, Vector3.zero, quaternion.identity);
-            var tanuki1 = Instantiate(Tanuki, Vector3.zero, quaternion.identity);
-            var kodama1 = Instantiate(Kodama, Vector3.zero, quaternion.identity);
+            var kitsune1 = Instantiate(kitsune, Vector3.zero, quaternion.identity);
+            var koropokurru1 = Instantiate(koropokkuru, Vector3.zero, quaternion.identity);
+            var tanuki1 = Instantiate(tanuki, Vector3.zero, quaternion.identity);
+            var kodama1 = Instantiate(kodama, Vector3.zero, quaternion.identity);
 
-            var kitsune2 = Instantiate(Kitsune, Vector3.zero, Quaternion.Euler(0, 0, 180));
-            var koropokurru2 = Instantiate(Koropokkuru, Vector3.zero, Quaternion.Euler(0, 0, 180));
-            var tanuki2 = Instantiate(Tanuki, Vector3.zero, Quaternion.Euler(0, 0, 180));
-            var kodama2 = Instantiate(Kodama, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var kitsune2 = Instantiate(kitsune, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var koropokurru2 = Instantiate(koropokkuru, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var tanuki2 = Instantiate(tanuki, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var kodama2 = Instantiate(kodama, Vector3.zero, Quaternion.Euler(0, 0, 180));
 
             kitsune1.GetComponent<Piece>().Player = _player1;
             tanuki1.GetComponent<Piece>().Player = _player1;
@@ -147,9 +143,13 @@ namespace _Code._Script
                         Eat(iNextTile.piece);
                     }
                 }
-
+                
                 iMyPiece.GetComponentInParent<Tile>().piece = null;
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
+                if (iMyPiece.GetComponent<Kodama>())
+                {
+                    TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
+                }
                 FinishTurn();
 
                 iNextTile.piece = iMyPiece;
@@ -178,7 +178,7 @@ namespace _Code._Script
         {
             iPiece.bIsFromPile = true;
             iPiece.changePlayer(iPiece.Player == _player1 ? _player2 : _player1);
-            SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2, iPiece));
+            SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2));
 
             if (iPiece.GetComponent<Koropokkuru>())
             {
@@ -186,7 +186,7 @@ namespace _Code._Script
             }
         }
 
-        private Tile ChooseGoodParent(GameObject[] iPile, Piece iPiece)
+        private Tile ChooseGoodParent(GameObject[] iPile)
         {
             Tile t;
 
@@ -215,9 +215,21 @@ namespace _Code._Script
         /// </summary>
         /// <param name="iTile"></param>
         /// <returns></returns>
-        public Vector2 GetTilePosition(Tile iTile)
+        public void TryTransformKodama(Kodama iKodama, Tile iTile)
         {
-            return iTile.position;
+            foreach (GameObject tile in _currPlayer.EnemyLastLine)
+            {
+                if (iTile.gameObject == tile)
+                {
+                    var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation,
+                        iTile.transform);
+                    kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
+                    iTile.piece = kodamaSamuraiTmp.GetComponent<Piece>();
+                    SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
+                    Destroy(iKodama.gameObject);
+                    Debug.Log("TRANSFORMATIOOOOOON");
+                }
+            }
         }
 
         /// <summary>
