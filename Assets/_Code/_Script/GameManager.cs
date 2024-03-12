@@ -59,15 +59,15 @@ namespace _Code._Script
 
             _currPlayer = _player1;
 
-            var kitsune1 = Instantiate(Kitsune, Vector3.one, quaternion.identity);
-            var koropokurru1 = Instantiate(Koropokkuru, Vector3.one, quaternion.identity);
-            var tanuki1 = Instantiate(Tanuki, Vector3.one, quaternion.identity);
-            var kodama1 = Instantiate(Kodama, Vector3.one, quaternion.identity);
+            var kitsune1 = Instantiate(Kitsune, Vector3.zero, quaternion.identity);
+            var koropokurru1 = Instantiate(Koropokkuru, Vector3.zero, quaternion.identity);
+            var tanuki1 = Instantiate(Tanuki, Vector3.zero, quaternion.identity);
+            var kodama1 = Instantiate(Kodama, Vector3.zero, quaternion.identity);
 
-            var kitsune2 = Instantiate(Kitsune, Vector3.one, Quaternion.Euler(0, 0, 180));
-            var koropokurru2 = Instantiate(Koropokkuru, Vector3.one, Quaternion.Euler(0, 0, 180));
-            var tanuki2 = Instantiate(Tanuki, Vector3.one, Quaternion.Euler(0, 0, 180));
-            var kodama2 = Instantiate(Kodama, Vector3.one, Quaternion.Euler(0, 0, 180));
+            var kitsune2 = Instantiate(Kitsune, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var koropokurru2 = Instantiate(Koropokkuru, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var tanuki2 = Instantiate(Tanuki, Vector3.zero, Quaternion.Euler(0, 0, 180));
+            var kodama2 = Instantiate(Kodama, Vector3.zero, Quaternion.Euler(0, 0, 180));
 
             kitsune1.GetComponent<Piece>().Player = _player1;
             tanuki1.GetComponent<Piece>().Player = _player1;
@@ -137,29 +137,36 @@ namespace _Code._Script
         /// <param name="iNextTile"></param>
         public void Move(Piece iMyPiece, Tile iNextTile)
         {
+            // For classic move
             if (CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
             {
                 if (iNextTile.piece != null)
                 {
                     if (iNextTile.piece.Player.Name != _currPlayer.Name)
+                    {
                         Eat(iNextTile.piece);
+                    }
                 }
 
+                iMyPiece.GetComponentInParent<Tile>().piece = null;
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
                 FinishTurn();
 
                 iNextTile.piece = iMyPiece;
             }
-            else if (iMyPiece.bIsFromPile && iNextTile.piece == null)
+            // For Air Drop
+            else if (iMyPiece.bIsFromPile && iNextTile.piece == null && iMyPiece.Player == _currPlayer)
             {
                 AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
                 FinishTurn();
             }
+            // Move back the piece to the tile where it belongs
             else
             {
                 SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
             }
+            Debug.Log("Current player : "+ _currPlayer.Name);
 
         }
 
@@ -172,6 +179,11 @@ namespace _Code._Script
             iPiece.bIsFromPile = true;
             iPiece.changePlayer(iPiece.Player == _player1 ? _player2 : _player1);
             SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2, iPiece));
+
+            if (iPiece.GetComponent<Koropokkuru>())
+            {
+                // TODO: Call the victory screen
+            }
         }
 
         private Tile ChooseGoodParent(GameObject[] iPile, Piece iPiece)
@@ -194,6 +206,7 @@ namespace _Code._Script
         /// </summary>
         public void AirDrop(Piece iPiece)
         {
+            iPiece.GetComponentInParent<Tile>().piece = null;
             iPiece.bIsFromPile = false;
         }
 
@@ -225,7 +238,7 @@ namespace _Code._Script
             var pieceTransform = iMyPiece.transform;
             var tileTransform = iNextTile.gameObject.transform;
             pieceTransform.parent = tileTransform; // Set parent
-            pieceTransform.position = tileTransform.position; // Move to parent
+            pieceTransform.position = new Vector3(tileTransform.position.x, tileTransform.position.y, 0f); // Move to parent
             iNextTile.piece = iMyPiece; // Put the piece in the tile
         }
 

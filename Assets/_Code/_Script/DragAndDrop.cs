@@ -33,33 +33,29 @@ namespace _Code._Script
         {
             Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            // Lancer un raycast depuis la position de la souris
+            // Start a raycast from the mouse cursor position
             RaycastHit2D[] hits = Physics2D.RaycastAll(mousePosition, Vector2.zero);
-
-            // Filtrer les résultats pour ignorer le premier objet touché
+            
+            // Filter the result to get the 2nd hit object with Piece script component on it
             foreach (RaycastHit2D hit in hits)
             {
                     GameObject dropArea = hit.collider.gameObject;
                     Debug.Log("GameObject sous la souris : " + dropArea.name);
                 if (hit.collider.gameObject.GetComponent<Piece>() == null)
                 {
-                    // Vous avez trouvé le GameObject sous le pointeur de la souris
                     GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
                     GameManager.Instance.currSelectedPiece = null;
                     break;
+                }
+                else
+                {
+                    GameManager.Instance.SetPieceAndMoveToParent(gameObject.GetComponent<Piece>(), 
+                        gameObject.GetComponentInParent<Tile>());
                 }
             }
             
             // /!\ Without this, the drag and drop can break
             gameObject.GetComponent<SpriteRenderer>().sortingOrder = 1;
-            var xPos = gameObject.transform.position.x;
-            var yPos = gameObject.transform.position.y;
-            gameObject.transform.position = new Vector3(xPos, yPos, 0f);
-        }
-
-        private bool IsYourTurn()
-        {
-            return false;
         }
     }
 }
