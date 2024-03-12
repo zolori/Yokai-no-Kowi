@@ -9,20 +9,20 @@ namespace _Code._Script
 {
     public class GameManager : MonoBehaviour
     {
-        [SerializeField] private GameObject[] board;
+        [SerializeField] private GameObject[] board, _pileJ1, _pileJ2;
         [SerializeField] private GameObject Kodama, Tanuki, Koropokkuru, Kitsune;
 
-        private List<Piece> _pile;
         public GameObject currSelectedPiece;
-
-        public static GameManager Instance;
+        public int nextEmptyTileInPileJ1 = 0, nextEmptyTileInPileJ2 = 0;
 
         #region Player
 
         private Player _currPlayer, _player1, _player2;
-        public static event Action<Tile> PlayerDroppedPieceCallback;
+        private int nbOfPlayer = 0;
 
         #endregion
+
+        public static GameManager Instance;
 
         /*        public struct Player
                 {
@@ -56,11 +56,11 @@ namespace _Code._Script
 
             _player1.Name = "Gontrand";
             _player2.Name = "Didier";
-            
+
             _currPlayer = _player1;
-            
+
             var kitsune1 = Instantiate(Kitsune, Vector3.one, quaternion.identity);
-            var koropokurru1 = Instantiate(Koropokkuru,Vector3.one, quaternion.identity);
+            var koropokurru1 = Instantiate(Koropokkuru, Vector3.one, quaternion.identity);
             var tanuki1 = Instantiate(Tanuki, Vector3.one, quaternion.identity);
             var kodama1 = Instantiate(Kodama, Vector3.one, quaternion.identity);
 
@@ -73,17 +73,17 @@ namespace _Code._Script
             tanuki1.GetComponent<Piece>().Player = _player1;
             koropokurru1.GetComponent<Piece>().Player = _player1;
             kodama1.GetComponent<Piece>().Player = _player1;
-            
+
             kitsune2.GetComponent<Piece>().Player = _player2;
             tanuki2.GetComponent<Piece>().Player = _player2;
             koropokurru2.GetComponent<Piece>().Player = _player2;
             kodama2.GetComponent<Piece>().Player = _player2;
-            
+
             SetPieceAndMoveToParent(kitsune1.GetComponent<Piece>(), board[0].GetComponent<Tile>());
             SetPieceAndMoveToParent(koropokurru1.GetComponent<Piece>(), board[1].GetComponent<Tile>());
             SetPieceAndMoveToParent(tanuki1.GetComponent<Piece>(), board[2].GetComponent<Tile>());
             SetPieceAndMoveToParent(kodama1.GetComponent<Piece>(), board[4].GetComponent<Tile>());
-            
+
             SetPieceAndMoveToParent(kitsune2.GetComponent<Piece>(), board[11].GetComponent<Tile>());
             SetPieceAndMoveToParent(koropokurru2.GetComponent<Piece>(), board[10].GetComponent<Tile>());
             SetPieceAndMoveToParent(tanuki2.GetComponent<Piece>(), board[9].GetComponent<Tile>());
@@ -104,8 +104,6 @@ namespace _Code._Script
         /// <returns></returns>
         public bool CanMove(Piece iMyPiece, Tile iNextTile)
         {
-            
-
             if (iMyPiece.Player == _currPlayer)
             {
                 if (iNextTile.piece != null)
@@ -113,7 +111,7 @@ namespace _Code._Script
                     if (iNextTile.piece.Player == _currPlayer)
                         return false;
                 }
-                
+
                 Vector2 currVectorMovement =
                     CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
@@ -148,15 +146,14 @@ namespace _Code._Script
                 }
 
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                PlayerDroppedPieceCallback?.Invoke(iNextTile);
                 FinishTurn();
 
                 iNextTile.piece = iMyPiece;
             }
             else if (iMyPiece.bIsFromPile && iNextTile.piece == null)
             {
+                AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                PlayerDroppedPieceCallback?.Invoke(iNextTile);
                 FinishTurn();
             }
             else
@@ -172,15 +169,32 @@ namespace _Code._Script
         /// <param name="iPiece"></param>
         private void Eat(Piece iPiece)
         {
+            iPiece.bIsFromPile = true;
+            iPiece.changePlayer(iPiece.Player == _player1 ? _player2 : _player1);
+            SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2, iPiece));
+        }
 
+        private Tile ChooseGoodParent(GameObject[] iPile, Piece iPiece)
+        {
+            Tile t;
+
+            foreach(GameObject tile in iPile)
+            {
+                t = tile.GetComponentInParent<Tile>();
+
+                if (t.piece == null)
+                    return t;
+            }
+
+            return null;
         }
 
         /// <summary>
         /// TO PLACE A PIECE TAKEN FROM THE PLAYER'S PILE
         /// </summary>
-        public void AirDrop()
+        public void AirDrop(Piece iPiece)
         {
-
+            iPiece.bIsFromPile = false;
         }
 
         /// <summary>

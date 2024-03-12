@@ -9,7 +9,7 @@ namespace _Code._Script
     public class IA : Player
     {
         public string Name { get; set; }
-        List<Piece> Player.Pioche { get; set; }
+        public int FirstEmptyTileInPile { get; set; }
 
         Tile Player.Play()
         {

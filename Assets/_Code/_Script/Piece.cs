@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace _Code._Script
@@ -5,9 +6,11 @@ namespace _Code._Script
     [RequireComponent(typeof(Collider2D), typeof(DragAndDrop))]
     public abstract class Piece : MonoBehaviour
     {
-        private string _name;
         [SerializeField] private Player _player;
+        public int TileNumberInPile { get; set; }
+        private string _name;
         private Sprite _sprite;
+
 
         protected Piece(Player player, Tile iTileToSpawn)
         {
@@ -23,6 +26,12 @@ namespace _Code._Script
         {
             get => _player;
             set => _player = value;
+        }
+
+        public void changePlayer(Player newPlayer)
+        {
+            _player = newPlayer;
+            transform.Rotate(0, 0, 180f);
         }
     }
 }
