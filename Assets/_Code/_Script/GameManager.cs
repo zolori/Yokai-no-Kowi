@@ -111,7 +111,7 @@ namespace _Code._Script
                 Vector2 currVectorMovement =
                     CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-                if (iMyPiece.transform.rotation.z != 0)
+                if (iMyPiece.Player == _player2)
                     currVectorMovement *= -1;
                 foreach (var movement in iMyPiece.VectorMovements)
                 {
@@ -151,7 +151,6 @@ namespace _Code._Script
                     TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
                 }
                 FinishTurn();
-
                 iNextTile.piece = iMyPiece;
             }
             // For Air Drop
