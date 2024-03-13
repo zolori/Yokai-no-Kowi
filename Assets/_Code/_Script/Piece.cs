@@ -5,11 +5,9 @@ namespace _Code._Script
     [RequireComponent(typeof(Collider2D), typeof(DragAndDrop))]
     public abstract class Piece : MonoBehaviour
     {
-        [SerializeField] private IPlayer _player;
-        public int TileNumberInPile { get; set; }
+        private IPlayer _player;
         private string _name;
         private Sprite _sprite;
-
 
         protected Piece(IPlayer player, Tile iTileToSpawn)
         {
@@ -27,7 +25,7 @@ namespace _Code._Script
             set => _player = value;
         }
 
-        public void changePlayer(IPlayer newPlayer)
+        public void ChangePlayer(IPlayer newPlayer)
         {
             _player = newPlayer;
             transform.Rotate(0, 0, 180f);

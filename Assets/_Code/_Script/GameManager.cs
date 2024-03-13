@@ -1,5 +1,6 @@
 using System;
 using _Code._Script.ChildPieces;
+using _Code._Script.Event;
 using _Code._Script.UI;
 using Unity.Mathematics;
 using UnityEngine;
@@ -8,17 +9,30 @@ namespace _Code._Script
 {
     public class GameManager : MonoBehaviour
     {
+        // This event will be invoked when the tile's piece variable must be updated
+        public EventHandler<EventTilePieceChange> OnTilePieceChangeEventHandler;  
+        
+        // This event will be invoked to record the last player movement
+        public EventHandler<EventPlayerMovement> OnPieceMovedEventHandler;
+        
         [SerializeField] private GameObject[] board, _pileJ1, _pileJ2;
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
 
         [SerializeField] private UIManager uiManagerReference;
 
-        public GameObject currSelectedPiece;
+        public GameObject CurrSelectedPiece { get; set; }
 
         #region Player
 
         private IPlayer _currPlayer, _player1, _player2;
 
+        public IPlayer Player1 => _player1;
+
+        public IPlayer Player2 => _player2;
+
+        private int _numberOfPlayers;
+        private bool[] _bPlayerAi;
+        
         #endregion
 
         public static GameManager Instance;
@@ -30,35 +44,30 @@ namespace _Code._Script
                 Destroy(gameObject);
                 return;
             }
-            else
-                Instance = this;
+            Instance = this;
         }
 
         private void Start()
         {
             InitGame();
+            /*_bPlayerAi = new bool[_numberOfPlayers];
+            _bPlayerAi[0] = false;
+            _bPlayerAi[1] = true;*/
         }
 
+        /// <summary>
+        /// INSTANTIATE, SET PIECES, PLACEMENT, ETC... FOR STARTING A NEW GAME
+        /// </summary>
         private void InitGame()
         {
-            _player1 = new Human();
-            _player2 = new Human();
-
-            _player1.Name = "Player 1";
-            _player2.Name = "Player 2";
-            
-            _player1.EnemyLastLine = new []
-            {
-                board[9],
-                board[10],
-                board[11]
-            };
-            _player2.EnemyLastLine = new []
-            {
-                board[0],
-                board[1],
-                board[2]
-            };
+            _player1 = new Human(0, 
+                "Player 1",
+                new []{board[9], board[10], board[11]}
+                );
+            _player2 = new Human(1, 
+                "Player 2",
+                new []{board[0], board[1], board[2]}
+            );
             
             _currPlayer = _player1;
             
@@ -93,9 +102,18 @@ namespace _Code._Script
             SetPieceAndMoveToParent(koropokurru2.GetComponent<Piece>(), board[10].GetComponent<Tile>());
             SetPieceAndMoveToParent(tanuki2.GetComponent<Piece>(), board[9].GetComponent<Tile>());
             SetPieceAndMoveToParent(kodama2.GetComponent<Piece>(), board[7].GetComponent<Tile>());
-
+        /*
+            _player1.PossessedPieces.Add(kitsune1.GetComponent<Piece>());
+            _player1.PossessedPieces.Add(tanuki1.GetComponent<Piece>());
+            _player1.PossessedPieces.Add(koropokurru1.GetComponent<Piece>());
+            _player1.PossessedPieces.Add(kodama1.GetComponent<Piece>());
+            
+            _player2.PossessedPieces.Add(kitsune2.GetComponent<Piece>());
+            _player2.PossessedPieces.Add(tanuki2.GetComponent<Piece>());
+            _player2.PossessedPieces.Add(koropokurru2.GetComponent<Piece>());
+            _player2.PossessedPieces.Add(kodama2.GetComponent<Piece>());
+        */
         }
-        
 
         /// <summary>
         /// CHECK IF THE PLAYER CAN MOVE THE GIVEN PIECE ON THE GIVEN TILE
@@ -107,9 +125,9 @@ namespace _Code._Script
         {
             if (iMyPiece.Player == _currPlayer)
             {
-                if (iNextTile.piece != null)
+                if (iNextTile.Piece != null)
                 {
-                    if (iNextTile.piece.Player == _currPlayer)
+                    if (iNextTile.Piece.Player == _currPlayer)
                         return false;
                 }
 
@@ -126,9 +144,19 @@ namespace _Code._Script
                         return true;
                     }
                 }
-                Debug.Log(currVectorMovement);
             }
             return false;
+        }
+
+        /// <summary>
+        /// CHECK IF THE PLAYER CAN AIR DROP THE GIVEN PIECE ON THE BOARD ON THE GIVEN TILE
+        /// </summary>
+        /// <param name="iMyPiece"></param>
+        /// <param name="iNextTile"></param>
+        /// <returns></returns>
+        public bool CanAirDrop(Piece iMyPiece, Tile iNextTile)
+        {
+            return iMyPiece.bIsFromPile && iNextTile.Piece == null;
         }
 
         /// <summary>
@@ -141,26 +169,32 @@ namespace _Code._Script
             // For classic move
             if (CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
             {
-                if (iNextTile.piece != null)
+                if (iNextTile.Piece != null)
                 {
-                    if (iNextTile.piece.Player.Name != _currPlayer.Name)
+                    if (iNextTile.Piece.Player.Name != _currPlayer.Name)
                     {
-                        Eat(iNextTile.piece);
+                        Eat(iNextTile.Piece);
                     }
                 }
                 
-                iMyPiece.GetComponentInParent<Tile>().piece = null;
+                Vector2 currVectorMovement =
+                    CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
+
+                if (iMyPiece.Player == _player2)
+                    currVectorMovement *= -1;
+                OnPieceMovedEventHandler?.Invoke(iMyPiece.Player, new EventPlayerMovement(currVectorMovement));
+                OnTilePieceChangeEventHandler?.Invoke(iMyPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                iNextTile.piece = iMyPiece;
                 
                 if (iMyPiece.GetComponent<Kodama>())
                 {
                     TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
                 }
+
                 FinishTurn();
             }
             // For Air Drop
-            else if (iMyPiece.bIsFromPile && iNextTile.piece == null && iMyPiece.Player == _currPlayer)
+            else if (CanAirDrop(iMyPiece, iNextTile) && iMyPiece.Player == _currPlayer) // need to check if iMyPiece.Player == _currPlayer is useless
             {
                 AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
@@ -171,8 +205,6 @@ namespace _Code._Script
             {
                 SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
             }
-            Debug.Log("Current player : "+ _currPlayer.Name);
-
         }
 
         /// <summary>
@@ -194,19 +226,25 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(), 
                     ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
+                //ChangePieceFromList(kodamaTmp.GetComponent<Piece>(),iPiece.GetComponent<KodamaSamurai>());
                 Destroy(iPiece.gameObject);
             }
 
             else
             {
                 iPiece.bIsFromPile = true;
-                iPiece.changePlayer(iPiece.Player == _player1 ? _player2 : _player1);
+                iPiece.ChangePlayer(iPiece.Player == _player1 ? _player2 : _player1);
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2));
+                //ChangePieceFromList(iPiece);
             }
 
-
         }
-
+    
+        /// <summary>
+        /// Find the right player's pile tile to use to place the eaten piece
+        /// </summary>
+        /// <param name="iPile"></param>
+        /// <returns></returns>
         private Tile ChooseGoodParent(GameObject[] iPile)
         {
             Tile t;
@@ -215,19 +253,41 @@ namespace _Code._Script
             {
                 t = tile.GetComponentInParent<Tile>();
 
-                if (t.piece == null)
+                if (t.Piece == null)
                     return t;
             }
 
             return null;
         }
 
+        /*/// <summary>
+        /// Remove and add the right piece of the players' list
+        /// </summary>
+        /// <param name="iPieceToAdd"></param>
+        /// <param name="iPieceToRemove"></param>
+        private void ChangePieceFromList(Piece iPieceToAdd, Piece iPieceToRemove = null)
+        {
+            if (iPieceToRemove != null && iPieceToRemove.GetComponent<KodamaSamurai>())
+                _currPlayer.PossessedPieces.Remove(iPieceToRemove);
+            else
+                _currPlayer.PossessedPieces.Remove(iPieceToAdd);
+
+            if (_currPlayer == _player1)
+            {
+                _player2.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
+            }
+            else
+            {
+                _player1.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
+            }
+        }*/
+
         /// <summary>
         /// TO PLACE A PIECE TAKEN FROM THE PLAYER'S PILE
         /// </summary>
         public void AirDrop(Piece iPiece)
         {
-            iPiece.GetComponentInParent<Tile>().piece = null;
+            OnTilePieceChangeEventHandler?.Invoke(iPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
             iPiece.bIsFromPile = false;
         }
 
@@ -244,18 +304,21 @@ namespace _Code._Script
                 {
                     var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation);
                     kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
-                    //iTile.piece = kodamaSamuraiTmp.GetComponent<Piece>();
                     SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
                     Destroy(iKodama.gameObject);
-                    Debug.Log("piece : "+ iTile.piece);
                 }
             }
+        }
+
+        public void CheckForDraw()
+        {
+            
         }
 
         /// <summary>
         /// TO UPDATE THE PLAYER CURRENTLY PLAYING AT THE END OF THE TURN
         /// </summary>
-        private void FinishTurn()
+        public void FinishTurn()
         {
             _currPlayer = _currPlayer.Name == _player1.Name ? _player2 : _player1;
             uiManagerReference.DisplayPlayerTurnText(_currPlayer.Name);
@@ -272,7 +335,7 @@ namespace _Code._Script
             var tileTransform = iNextTile.gameObject.transform;
             pieceTransform.parent = tileTransform; // Set parent
             pieceTransform.position = new Vector3(tileTransform.position.x, tileTransform.position.y, 0f); // Move to parent
-            iNextTile.piece = iMyPiece; // Put the piece in the tile
+            OnTilePieceChangeEventHandler?.Invoke(iNextTile, new EventTilePieceChange(iMyPiece));     // Put the piece in the tile variable
         }
 
         /// <summary>

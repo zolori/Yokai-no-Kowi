@@ -1426,6 +1426,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5312172060730204605, guid: 438477e5c27d6934ca4293e930e21fb0, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5312172060730204605, guid: 438477e5c27d6934ca4293e930e21fb0, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5312172060730204605, guid: 438477e5c27d6934ca4293e930e21fb0, type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5312172060730204605, guid: 438477e5c27d6934ca4293e930e21fb0, type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7897294316108629030, guid: 438477e5c27d6934ca4293e930e21fb0, type: 3}
       propertyPath: m_Name
       value: BoardTile
