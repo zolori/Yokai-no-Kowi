@@ -12,7 +12,7 @@ namespace _Code._Script.ChildPieces
                 new Vector2(1, 0), new Vector2(0, -1), new Vector2(-1, -1), new Vector2(1, -1)};
         }
 
-        public Koropokkuru(Player player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        public Koropokkuru(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
         {
         }
     }

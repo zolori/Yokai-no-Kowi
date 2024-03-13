@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Code._Script
 {
-    public interface Player
+    public interface IPlayer
     {
         string Name { get; set; }
         

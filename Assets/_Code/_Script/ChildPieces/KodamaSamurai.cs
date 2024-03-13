@@ -13,7 +13,7 @@ namespace _Code._Script.ChildPieces
         }
 
 
-        public KodamaSamurai(Player player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        public KodamaSamurai(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
         {
         }
     }

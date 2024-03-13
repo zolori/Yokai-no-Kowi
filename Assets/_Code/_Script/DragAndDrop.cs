@@ -5,7 +5,7 @@ namespace _Code._Script
     public class DragAndDrop : MonoBehaviour
     {
         private Vector3 _mousePosition;
-        private bool bIsYourTurn;
+        private bool _bIsYourTurn;
 
         private Vector3 GetMousePosition()
         {
