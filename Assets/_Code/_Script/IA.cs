@@ -14,6 +14,8 @@ namespace _Code._Script
         public List<Vector2> LastThreeMove { get; set; }
         public GameObject[] EnemyLastLine { get; set; }
 
+        private GameManager _gameManager;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -93,6 +95,39 @@ namespace _Code._Script
                 }
             }
             return null;
+        }
+
+        private int MinMax(int depth, bool maximizingPlayer)
+        {
+            if (depth == 0 || _gameManager.CheckWin() != 0)
+            {
+                return _gameManager.EvaluateBoard();
+            }
+
+            if (maximizingPlayer)
+            {
+                int maxEval = int.MinValue;
+                foreach (var move in _gameManager.GetLegalMoves(1))
+                {
+                    _gameManager.ApplyMove(move, 1);
+                    int eval = MinMax(depth - 1, false);
+                    maxEval = Math.Max(maxEval, eval);
+                    _gameManager.UndoMove(move);  // Assume this method undoes a move
+                }
+                return maxEval;
+            }
+            else
+            {
+                int minEval = int.MaxValue;
+                foreach (var move in _gameManager.GetLegalMoves(-1))
+                {
+                    _gameManager.ApplyMove(move, -1);
+                    int eval = MinMax(depth - 1, true);
+                    minEval = Math.Min(minEval, eval);
+                    _gameManager.UndoMove(move);  // Assume this method undoes a move
+                }
+                return minEval;
+            }
         }
     }
 }
