@@ -393,7 +393,7 @@ namespace _Code._Script
         /// </summary>
         /// <param name="move"></param>
         /// <param name="player"></param>
-        public void ApplyMove(List<Vector2> move, int player)
+        public void ApplyMove(Vector2 move, int player)
         {
         }
 
@@ -401,7 +401,7 @@ namespace _Code._Script
         /// Undo a move for the player on the board
         /// </summary>
         /// <param name="move"></param>
-        public void UndoMove(List<Vector2> move)
+        public void UndoMove(Vector2 move)
         {
 
         }
