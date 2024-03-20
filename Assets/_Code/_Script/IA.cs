@@ -99,15 +99,17 @@ namespace _Code._Script
 
         private int MinMax(int depth, bool maximizingPlayer)
         {
+            IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
+
             if (depth == 0 || _gameManager.CheckWin() != 0)
                 return _gameManager.EvaluateBoard();
 
             if (maximizingPlayer)
             {
                 int maxEval = int.MinValue;
-                foreach (var move in _gameManager.GetLegalMoves(1))
+                foreach (var move in _gameManager.GetLegalMoves(this))
                 {
-                    _gameManager.ApplyMove(move, 1);
+                    _gameManager.ApplyMove(move, this);
                     int eval = MinMax(depth - 1, false);
                     maxEval = Math.Max(maxEval, eval);
                     _gameManager.UndoMove(move);
@@ -117,9 +119,9 @@ namespace _Code._Script
             else
             {
                 int minEval = int.MaxValue;
-                foreach (var move in _gameManager.GetLegalMoves(-1))
+                foreach (var move in _gameManager.GetLegalMoves(opponent))
                 {
-                    _gameManager.ApplyMove(move, -1);
+                    _gameManager.ApplyMove(move, opponent);
                     int eval = MinMax(depth - 1, true);
                     minEval = Math.Min(minEval, eval);
                     _gameManager.UndoMove(move);

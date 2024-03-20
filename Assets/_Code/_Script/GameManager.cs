@@ -26,7 +26,7 @@ namespace _Code._Script
 
         #region Player
 
-        private IPlayer _currPlayer, _player1, _player2;
+        private IPlayer _currPlayer, _inactivePlayer, _player1, _player2;
 
         public IPlayer Player1 => _player1;
 
@@ -74,6 +74,7 @@ namespace _Code._Script
             );
 
             _currPlayer = _player1;
+            _inactivePlayer = _player2;
 
             uiManagerReference.DisplayPlayerTurnText(_player1.Name);
 
@@ -337,7 +338,8 @@ namespace _Code._Script
         /// </summary>
         public void FinishTurn()
         {
-            _currPlayer = _currPlayer.Name == _player1.Name ? _player2 : _player1;
+            _currPlayer = _currPlayer == _player1 ? _player2 : _player1;
+            _inactivePlayer = _currPlayer == _player1 ? _player2 : _player1;
             uiManagerReference.DisplayPlayerTurnText(_currPlayer.Name);
         }
 
@@ -377,7 +379,7 @@ namespace _Code._Script
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
-        public List<Vector2> GetLegalMoves(int player)
+        public List<Vector2> GetLegalMoves(IPlayer player)
         {
             return new List<Vector2>();
         }
@@ -387,7 +389,7 @@ namespace _Code._Script
         /// </summary>
         /// <param name="move"></param>
         /// <param name="player"></param>
-        public void ApplyMove(Vector2 move, int player)
+        public void ApplyMove(Vector2 move, IPlayer player)
         {
         }
 
@@ -423,5 +425,10 @@ namespace _Code._Script
         }
 
         #endregion
+
+        public IPlayer getPlayerThatsNotHisTurn()
+        {
+            return _currPlayer == _player1 ? _player2 : _player1;
+        }
     }
 }
