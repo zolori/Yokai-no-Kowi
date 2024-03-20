@@ -83,11 +83,11 @@ namespace _Code._Script
             // Start a raycast with the current piece + movement vector as origin
             RaycastHit2D[] hits = Physics2D.RaycastAll(originPos, Vector2.zero);
 
-            // Filter the result to get the 2nd hit object with Piece script component on it
+            // Filter the result to get the first object with Tile script component on it, ignore other gameobject
             foreach (RaycastHit2D hit in hits)
             {
                 GameObject dropArea = hit.collider.gameObject;
-                Debug.Log("IA | GameObject sous la souris : " + dropArea.name);
+                Debug.Log("IA | GameObject hit par le raycast : " + dropArea.name);
 
                 if (dropArea.GetComponent<Tile>())
                 {
