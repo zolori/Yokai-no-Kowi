@@ -73,10 +73,10 @@ namespace _Code._Script
                 new[] { board[0], board[1], board[2] }
             );
 
-            _currPlayer = _player1;
-            _inactivePlayer = _player2;
+            _currPlayer = Player1;
+            _inactivePlayer = Player2;
 
-            uiManagerReference.DisplayPlayerTurnText(_player1.Name);
+            uiManagerReference.DisplayPlayerTurnText(Player1.Name);
 
             var kitsune1 = Instantiate(kitsune, Vector3.zero, quaternion.identity);
             var koropokurru1 = Instantiate(koropokkuru, Vector3.zero, quaternion.identity);
@@ -88,15 +88,15 @@ namespace _Code._Script
             var tanuki2 = Instantiate(tanuki, Vector3.zero, Quaternion.Euler(0, 0, 180));
             var kodama2 = Instantiate(kodama, Vector3.zero, Quaternion.Euler(0, 0, 180));
 
-            kitsune1.GetComponent<Piece>().Player = _player1;
-            tanuki1.GetComponent<Piece>().Player = _player1;
-            koropokurru1.GetComponent<Piece>().Player = _player1;
-            kodama1.GetComponent<Piece>().Player = _player1;
+            kitsune1.GetComponent<Piece>().Player = Player1;
+            tanuki1.GetComponent<Piece>().Player = Player1;
+            koropokurru1.GetComponent<Piece>().Player = Player1;
+            kodama1.GetComponent<Piece>().Player = Player1;
 
-            kitsune2.GetComponent<Piece>().Player = _player2;
-            tanuki2.GetComponent<Piece>().Player = _player2;
-            koropokurru2.GetComponent<Piece>().Player = _player2;
-            kodama2.GetComponent<Piece>().Player = _player2;
+            kitsune2.GetComponent<Piece>().Player = Player2;
+            tanuki2.GetComponent<Piece>().Player = Player2;
+            koropokurru2.GetComponent<Piece>().Player = Player2;
+            kodama2.GetComponent<Piece>().Player = Player2;
 
             SetPieceAndMoveToParent(kitsune1.GetComponent<Piece>(), board[0].GetComponent<Tile>());
             SetPieceAndMoveToParent(koropokurru1.GetComponent<Piece>(), board[1].GetComponent<Tile>());
@@ -148,7 +148,7 @@ namespace _Code._Script
                 Vector2 currVectorMovement =
                     CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-                if (iMyPiece.Player == _player2)
+                if (iMyPiece.Player == Player2)
                     currVectorMovement *= -1;
                 foreach (var movement in iMyPiece.VectorMovements)
                 {
@@ -196,7 +196,7 @@ namespace _Code._Script
                 Vector2 currVectorMovement =
                     CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-                if (iMyPiece.Player == _player2)
+                if (iMyPiece.Player == Player2)
                     currVectorMovement *= -1;
 
                 OnPieceMovedEventHandler?.Invoke(iMyPiece.Player, new EventPlayerMovement(currVectorMovement));
@@ -241,7 +241,7 @@ namespace _Code._Script
                 kodamaTmp.transform.Rotate(0, 0, 180);
                 kodamaTmp.GetComponent<Piece>().Player = _currPlayer;
                 SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(),
-                    ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2));
+                    ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
                 //ChangePieceFromList(kodamaTmp.GetComponent<Piece>(),iPiece.GetComponent<KodamaSamurai>());
                 Destroy(iPiece.gameObject);
@@ -250,8 +250,8 @@ namespace _Code._Script
             else
             {
                 iPiece.bIsFromPile = true;
-                iPiece.ChangePlayer(iPiece.Player == _player1 ? _player2 : _player1);
-                SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == _player1 ? _pileJ1 : _pileJ2));
+                iPiece.ChangePlayer(iPiece.Player == Player1 ? Player2 : Player1);
+                SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 //ChangePieceFromList(iPiece);
             }
 
@@ -289,13 +289,13 @@ namespace _Code._Script
             else
                 _currPlayer.PossessedPieces.Remove(iPieceToAdd);
 
-            if (_currPlayer == _player1)
+            if (_currPlayer == Player1)
             {
-                _player2.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
+                Player2.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
             }
             else
             {
-                _player1.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
+                Player1.PossessedPieces.Add(iPieceToAdd.GetComponent<Piece>());
             }
         }*/
 
@@ -329,7 +329,7 @@ namespace _Code._Script
 
         public void CheckForDraw()
         {
-            if (_player1.BSameThreeLastMove && _player2.BSameThreeLastMove)
+            if (Player1.BSameThreeLastMove && Player2.BSameThreeLastMove)
                 GameOver(false);
         }
 
@@ -338,8 +338,9 @@ namespace _Code._Script
         /// </summary>
         public void FinishTurn()
         {
-            _currPlayer = _currPlayer == _player1 ? _player2 : _player1;
-            _inactivePlayer = _currPlayer == _player1 ? _player2 : _player1;
+            _inactivePlayer = _currPlayer;
+            _currPlayer = _currPlayer == Player1 ? Player2 : Player1;
+
             uiManagerReference.DisplayPlayerTurnText(_currPlayer.Name);
         }
 
@@ -371,6 +372,47 @@ namespace _Code._Script
             return new Vector2(x, y);
         }
 
+        #region *** IA ***
+
+        // A faire : Modifier CanMove() + finir GetTileToMove()
+
+        /// <summary>
+        /// GET A REFERENCE TO THE TILE WHERE THE IA TRY TO MOVE THE PIECE
+        /// </summary>
+        /// <param name="iPieceToMove"></param>
+        /// <param name="iVectorMovement"></param>
+        /// <returns>The reference to the tile hit by the raycast</returns>
+        private Vector2? GetTileToMove(Piece iPieceToMove, Vector2 iVectorMovement)
+        {
+            Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
+
+            if (iPieceToMove.Player == Player2)
+                iVectorMovement *= -1;
+
+            var xPos = currPieceTile.x + iVectorMovement.x;
+            var yPos = currPieceTile.y + iVectorMovement.y;
+            Vector2 originPos = new Vector2(xPos, yPos);
+
+
+            // Start a raycast with the current piece + movement vector as origin
+            RaycastHit2D[] hits = Physics2D.RaycastAll(originPos, Vector2.zero);
+
+            // Filter the result to get the first object with Tile script component on it, ignore other gameobject
+            foreach (RaycastHit2D hit in hits)
+            {
+                GameObject dropArea = hit.collider.gameObject;
+                Debug.Log("IA | GameObject hit par le raycast : " + dropArea.name);
+
+                if (dropArea.GetComponent<Tile>())
+                {
+                    CanMove(iPieceToMove, dropArea.GetComponent<Tile>());
+                    // return dropArea.GetComponent<Vector2>();
+                }
+
+            }
+
+            return null;
+        }
 
         #region *** MinMax ***
 
@@ -381,6 +423,19 @@ namespace _Code._Script
         /// <returns></returns>
         public List<Vector2> GetLegalMoves(IPlayer player)
         {
+            List<Vector2> moves = new List<Vector2>();
+
+            foreach (Piece piece in player.PossessedPieces)
+            {
+                if (!piece.bIsFromPile)
+                    foreach (Vector2 mouvements in piece.VectorMovements)
+                    {
+                        Vector2? move = GetTileToMove(piece, mouvements);
+                        if (move != null)
+                            moves.Add(move.Value);
+                    }
+            }
+
             return new List<Vector2>();
         }
 
@@ -393,7 +448,7 @@ namespace _Code._Script
         {
         }
 
-        public int CheckWin() 
+        public int CheckWin()
         {
             return gameState;
         }
@@ -426,9 +481,11 @@ namespace _Code._Script
 
         #endregion
 
+        #endregion
+
         public IPlayer getPlayerThatsNotHisTurn()
         {
-            return _currPlayer == _player1 ? _player2 : _player1;
+            return _currPlayer == Player1 ? Player2 : Player1;
         }
     }
 }
