@@ -62,12 +62,11 @@ namespace _Code._Script
             }
         }
 
+        /// <summary>
+        /// Compare the three element of the list LastThreeMove to check if they fill the draw condition
+        /// </summary>
         public void CompareThreeLastMove()
         {
-            // TODO: compare the last three move
-            // TODO: If yes : BSameLastThreeMove = true
-            // TODO: If no : pass
-
             var vectorToTest1 = LastThreeMove.ElementAt(0);
             var vectorToTest2 = LastThreeMove.ElementAt(1);
             var vectorToTest3 = LastThreeMove.ElementAt(2);
@@ -75,6 +74,8 @@ namespace _Code._Script
 
             if (vectorToTest1 == vectorToTest3 && vectorToTest1 == vectorToTest2)
                 BSameThreeLastMove = true;
+            else
+                BSameThreeLastMove = false;
         }
     }
 }
