@@ -15,6 +15,7 @@ namespace _Code._Script
             EnemyLastLine = enemyLastLine;
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
+            BSameThreeLastMove = false;
         }
 
         public int Id { get; set; }
@@ -49,6 +50,10 @@ namespace _Code._Script
                     LastThreeMove.Insert(0, e.VectorMovement);
                 }
                 
+                if(LastThreeMove.Count == 3)
+                    CompareThreeLastMove();
+                
+                
                 //DEBUG ONLY
                 foreach (var move in LastThreeMove)
                 {
@@ -57,11 +62,20 @@ namespace _Code._Script
             }
         }
 
+        /// <summary>
+        /// Compare the three element of the list LastThreeMove to check if they fill the draw condition
+        /// </summary>
         public void CompareThreeLastMove()
         {
-            // TODO: compare the last three move
-            // TODO: If yes : BSameLastThreeMove = true
-            // TODO: If no : pass
+            var vectorToTest1 = LastThreeMove.ElementAt(0);
+            var vectorToTest2 = LastThreeMove.ElementAt(1);
+            var vectorToTest3 = LastThreeMove.ElementAt(2);
+            vectorToTest2 *= -1;
+
+            if (vectorToTest1 == vectorToTest3 && vectorToTest1 == vectorToTest2)
+                BSameThreeLastMove = true;
+            else
+                BSameThreeLastMove = false;
         }
     }
 }
