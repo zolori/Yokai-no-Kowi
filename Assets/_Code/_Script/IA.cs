@@ -99,7 +99,7 @@ namespace _Code._Script
 
         private int MinMax(int depth, bool maximizingPlayer)
         {
-            if (depth == 0 || _gameManager._isGameOver != 0)
+            if (depth == 0 || _gameManager.CheckWin() != 0)
                 return _gameManager.EvaluateBoard();
 
             if (maximizingPlayer)

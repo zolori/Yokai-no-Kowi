@@ -37,7 +37,8 @@ namespace _Code._Script
 
         #endregion
 
-        public int _isGameOver { private set; get; }
+        public bool _isGameOver { private set; get; }
+        public int gameState { private set; get; }
         public static GameManager Instance;
 
         private void Awake()
@@ -122,7 +123,7 @@ namespace _Code._Script
         /// return if this game is over or not
         /// </summary>
         /// <param name="flag"></param>
-        public void GameOver(int value)
+        public void GameOver(bool value)
         {
             _isGameOver = value;
         }
@@ -327,7 +328,8 @@ namespace _Code._Script
 
         public void CheckForDraw()
         {
-
+            if (_player1.BSameThreeLastMove && _player2.BSameThreeLastMove)
+                GameOver(false);
         }
 
         /// <summary>
@@ -387,6 +389,11 @@ namespace _Code._Script
         /// <param name="player"></param>
         public void ApplyMove(Vector2 move, int player)
         {
+        }
+
+        public int CheckWin() 
+        {
+            return gameState;
         }
 
         /// <summary>
