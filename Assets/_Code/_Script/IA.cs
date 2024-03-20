@@ -99,10 +99,8 @@ namespace _Code._Script
 
         private int MinMax(int depth, bool maximizingPlayer)
         {
-            if (depth == 0 || _gameManager.CheckWin() != 0)
-            {
+            if (depth == 0 || _gameManager._isGameOver != 0)
                 return _gameManager.EvaluateBoard();
-            }
 
             if (maximizingPlayer)
             {
@@ -112,7 +110,7 @@ namespace _Code._Script
                     _gameManager.ApplyMove(move, 1);
                     int eval = MinMax(depth - 1, false);
                     maxEval = Math.Max(maxEval, eval);
-                    _gameManager.UndoMove(move);  // Assume this method undoes a move
+                    _gameManager.UndoMove(move);
                 }
                 return maxEval;
             }
@@ -124,7 +122,7 @@ namespace _Code._Script
                     _gameManager.ApplyMove(move, -1);
                     int eval = MinMax(depth - 1, true);
                     minEval = Math.Min(minEval, eval);
-                    _gameManager.UndoMove(move);  // Assume this method undoes a move
+                    _gameManager.UndoMove(move);
                 }
                 return minEval;
             }
