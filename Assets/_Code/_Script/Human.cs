@@ -37,7 +37,7 @@ namespace _Code._Script
         /// <param name="e"></param>
         public void SetLastMovement(object receiver, EventPlayerMovement e)
         {
-            if (receiver.Equals(this))
+            /*if (receiver.Equals(this))
             {
                 if (LastThreeMove.Count < 2)
                 {
@@ -48,7 +48,7 @@ namespace _Code._Script
                     LastThreeMove.RemoveAt(2);
                     LastThreeMove.Insert(0, e.VectorMovement);
                 }
-            }
+            }*/
         }
 
         public void CompareThreeLastMove()
