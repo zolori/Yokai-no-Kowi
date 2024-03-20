@@ -168,7 +168,9 @@ namespace _Code._Script
         /// <returns></returns>
         public bool CanAirDrop(Piece iMyPiece, Tile iNextTile)
         {
-            return iMyPiece.bIsFromPile && iNextTile.Piece == null;
+            if (iMyPiece.Player == _currPlayer)
+                return iMyPiece.bIsFromPile && iNextTile.Piece == null;
+            return false;
         }
 
         /// <summary>
@@ -207,7 +209,7 @@ namespace _Code._Script
                 FinishTurn();
             }
             // For Air Drop
-            else if (CanAirDrop(iMyPiece, iNextTile) && iMyPiece.Player == _currPlayer) // need to check if iMyPiece.Player == _currPlayer is useless
+            else if (CanAirDrop(iMyPiece, iNextTile)) // need to check if iMyPiece.Player == _currPlayer is useless
             {
                 AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
