@@ -4,9 +4,10 @@ namespace _Code._Script
 {
     public class DragAndDrop : MonoBehaviour
     {
-        private Vector3 _mousePosition { get; set; }
-        private bool _bIsYourTurn { get; set; }
-        GameObject lastHoveredArea = null;
+        private Vector3 MousePosition { get; set; }
+        private bool BIsYourTurn { get; set; }
+        private GameObject _lastHoveredArea = null;
+        private GameObject _originArea = null;
 
         private Vector3 GetMousePosition()
         {
@@ -22,14 +23,12 @@ namespace _Code._Script
             GameManager.Instance.CurrSelectedPiece = gameObject;
             gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
             
-            _mousePosition = Input.mousePosition - GetMousePosition();
+            MousePosition = Input.mousePosition - GetMousePosition();
         }
 
         private void OnMouseDrag()
         {
-            transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition - _mousePosition);
-            
-            
+            transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition - MousePosition);
             Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
             // Start a raycast from the mouse cursor position
@@ -39,24 +38,33 @@ namespace _Code._Script
             foreach (RaycastHit2D hit in hits)
             {
                 GameObject hoveringArea = hit.collider.gameObject;
-                Debug.Log("PLAYER | GameObject sous la souris : " + hoveringArea.name);
-
+                
                 if (hoveringArea.GetComponent<Tile>() && hoveringArea.GetComponent<Tile>() != gameObject.GetComponentInParent<Tile>())
                 {
-                    if (lastHoveredArea == hoveringArea)
+                    if(hoveringArea.GetComponent<Tile>().bisPile)
+                        break;
+                    
+                    if (_lastHoveredArea == hoveringArea)
                     {
                         hoveringArea.GetComponent<Tile>().SetHoveringColor();
-                        Debug.Log("SET HOVERING COLOR");
-
                     }
                     else
                     {
-                        hoveringArea.GetComponent<Tile>().SetBaseColor();
-                        if(lastHoveredArea != null)
-                            lastHoveredArea.GetComponent<Tile>().SetBaseColor();
-                        lastHoveredArea = hoveringArea;
-                        Debug.Log("SET BASE COLOR");
+                        if(_lastHoveredArea != null)
+                            _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
+                        _lastHoveredArea = hoveringArea;
                     }
+                    break;
+                }
+
+                if (hoveringArea.GetComponent<Tile>() == gameObject.GetComponentInParent<Tile>())
+                {
+                    if (_originArea == null)
+                        _originArea = hoveringArea;
+                    _originArea.GetComponent<Tile>().SetOriginLocationColor();
+                    
+                    if(_lastHoveredArea)
+                        _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                     break;
                 }
             }
@@ -73,13 +81,18 @@ namespace _Code._Script
             foreach (RaycastHit2D hit in hits)
             {
                 GameObject dropArea = hit.collider.gameObject;
-                //Debug.Log("PLAYER | GameObject sous la souris : " + dropArea.name);
                 
                 if (dropArea.GetComponent<Tile>())
                 {
                     GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
                     GameManager.Instance.CurrSelectedPiece = null;
+                    
                     dropArea.GetComponent<Tile>().SetBaseColor();
+                    _originArea.GetComponent<Tile>().SetBaseColor();
+                    _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
+                    _originArea = null;
+                    _lastHoveredArea = null;
+                    
                     break;
                 }
                 GameManager.Instance.SetPieceAndMoveToParent(gameObject.GetComponent<Piece>(),

@@ -5,8 +5,8 @@ namespace _Code._Script
 {
     public class Tile : MonoBehaviour
     {
-        [SerializeField] private Color baseColor, greenHoveringColor, redHoveringColor;
-
+        [SerializeField] private Color baseColor, greenHoveringColor, redHoveringColor, originLocationColor;
+        public bool bisPile;
         private Vector2 Position { get; set; }
 
         public Piece Piece { get; set; }
@@ -39,19 +39,21 @@ namespace _Code._Script
                     GameManager.Instance.CanAirDrop(GameManager.Instance.CurrSelectedPiece.GetComponent<Piece>(), this))
             {
                 GetComponent<SpriteRenderer>().color = greenHoveringColor;
-                Debug.Log("Green hovering");
             }
             else
             {
                 GetComponent<SpriteRenderer>().color = redHoveringColor;
-                Debug.Log("Red hovering");
-
             }
         }
         
         public void SetBaseColor()
         {
             GetComponent<SpriteRenderer>().color = baseColor;
+        }
+
+        public void SetOriginLocationColor()
+        {
+            GetComponent<SpriteRenderer>().color = originLocationColor;
         }
 
     }
