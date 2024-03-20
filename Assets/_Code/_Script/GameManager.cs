@@ -37,7 +37,7 @@ namespace _Code._Script
 
         #endregion
 
-        public bool _isGameOver { private set; get; }
+        public int _isGameOver { private set; get; }
         public static GameManager Instance;
 
         private void Awake()
@@ -122,9 +122,9 @@ namespace _Code._Script
         /// return if this game is over or not
         /// </summary>
         /// <param name="flag"></param>
-        public void GameOver(bool flag)
+        public void GameOver(int value)
         {
-            _isGameOver = flag;
+            _isGameOver = value;
         }
 
         /// <summary>
@@ -371,16 +371,6 @@ namespace _Code._Script
         #region *** MinMax ***
 
         /// <summary>
-        /// Check for a winning condition
-        /// Return 1 if player 1 wins, -1 if player 2 wins, 0 otherwise
-        /// </summary>
-        /// <returns></returns>
-        public int CheckWin()
-        {
-            return 0;
-        }
-
-        /// <summary>
         /// Return a list of legal moves for the player
         /// </summary>
         /// <param name="player"></param>
@@ -411,6 +401,13 @@ namespace _Code._Script
         /// <summary>
         /// Evaluate the board from the perspective of player 1
         /// CRUCIAL FOR THE ENTIER ALGORITHM
+        /// 
+        /// Evaluation :
+        /// - Type de pièce (kuro : 10000 + augmente en fonction de son avancée / kodama augmente en fonction de son avancée / kodama samourai : 10 / autre : 5)
+        /// - Avancée des pièces vers le camp de l'aversaire
+        /// - Nombre de pièces, de case/pièce couverte
+        /// - Nombre de pièce en danger/mangeable au prochain coup
+        /// 
         /// </summary>
         /// <returns></returns>
         public int EvaluateBoard()
