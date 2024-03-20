@@ -5,6 +5,7 @@ namespace _Code._Script.UI
 {
     public class MainMenu : MonoBehaviour
     {
+       
         public void PlayGame()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
@@ -14,7 +15,7 @@ namespace _Code._Script.UI
         {
             Application.Quit();
         }
-
+        
         public void BackToMainMenu()
         {
             SceneManager.LoadScene(0);
