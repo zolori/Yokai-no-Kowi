@@ -375,6 +375,10 @@ namespace _Code._Script
         #region *** IA ***
 
         // A faire : Modifier CanMove() + finir GetTileToMove()
+        // Opti : faire en sorte de garder les moves des pieces qui n'ont pas été bougées pour chaque joueur, pour ne pas avoir à recalculer à chaque fois.
+
+
+        Dictionary<Piece, Vector2> moves;
 
         /// <summary>
         /// GET A REFERENCE TO THE TILE WHERE THE IA TRY TO MOVE THE PIECE
@@ -382,20 +386,17 @@ namespace _Code._Script
         /// <param name="iPieceToMove"></param>
         /// <param name="iVectorMovement"></param>
         /// <returns>The reference to the tile hit by the raycast</returns>
-        private Vector2? GetTileToMove(Piece iPieceToMove, Vector2 iVectorMovement)
+        private Vector2? GetTargetPos(Piece iPieceToMove, Vector2 iVectorMovement)
         {
             Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
 
             if (iPieceToMove.Player == Player2)
                 iVectorMovement *= -1;
 
-            var xPos = currPieceTile.x + iVectorMovement.x;
-            var yPos = currPieceTile.y + iVectorMovement.y;
-            Vector2 originPos = new Vector2(xPos, yPos);
-
+            Vector2 targetPos = currPieceTile + iVectorMovement;
 
             // Start a raycast with the current piece + movement vector as origin
-            RaycastHit2D[] hits = Physics2D.RaycastAll(originPos, Vector2.zero);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
 
             // Filter the result to get the first object with Tile script component on it, ignore other gameobject
             foreach (RaycastHit2D hit in hits)
@@ -405,13 +406,37 @@ namespace _Code._Script
 
                 if (dropArea.GetComponent<Tile>())
                 {
-                    CanMove(iPieceToMove, dropArea.GetComponent<Tile>());
-                    // return dropArea.GetComponent<Vector2>();
+                    if(CanMoveIA(iPieceToMove, dropArea.GetComponent<Tile>()));
+                        return targetPos;
                 }
 
             }
 
             return null;
+        }
+
+        private bool CanMoveIA(Piece iMyPiece, Tile iNextTile)
+        {
+            if (iNextTile.Piece != null)
+            {
+                if (iNextTile.Piece.Player == _currPlayer)
+                    return false;
+            }
+
+            Vector2 currVectorMovement =
+                CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
+
+            if (iMyPiece.Player == Player2)
+                currVectorMovement *= -1;
+            foreach (var movement in iMyPiece.VectorMovements)
+            {
+                if (currVectorMovement == movement)
+                {
+                    Debug.Log(currVectorMovement);
+                    return true;
+                }
+            }
+            return false;
         }
 
         #region *** MinMax ***
@@ -421,22 +446,22 @@ namespace _Code._Script
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
-        public List<Vector2> GetLegalMoves(IPlayer player)
+        public Dictionary<Piece, Vector2> GetLegalMoves(IPlayer player)
         {
-            List<Vector2> moves = new List<Vector2>();
+            moves = new Dictionary<Piece, Vector2>();
 
             foreach (Piece piece in player.PossessedPieces)
             {
                 if (!piece.bIsFromPile)
                     foreach (Vector2 mouvements in piece.VectorMovements)
                     {
-                        Vector2? move = GetTileToMove(piece, mouvements);
+                        Vector2? move = GetTargetPos(piece, mouvements);
                         if (move != null)
-                            moves.Add(move.Value);
+                            moves.Add(piece, move.Value);
                     }
             }
 
-            return new List<Vector2>();
+            return moves;
         }
 
         /// <summary>
@@ -444,8 +469,51 @@ namespace _Code._Script
         /// </summary>
         /// <param name="move"></param>
         /// <param name="player"></param>
-        public void ApplyMove(Vector2 move, IPlayer player)
+        public void ApplyMove(KeyValuePair<Piece, Vector2> move, IPlayer player)
         {
+            Piece myPiece = move.Key;
+            Tile nextTile = GetTargetPos();
+
+            // For classic move
+            if (CanMoveIA(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
+            {
+                if (iNextTile.Piece != null)
+                {
+                    if (iNextTile.Piece.Player.Name != _currPlayer.Name)
+                    {
+                        Eat(iNextTile.Piece);
+                    }
+                }
+
+                Vector2 currVectorMovement =
+                    CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
+
+                if (iMyPiece.Player == Player2)
+                    currVectorMovement *= -1;
+
+                OnPieceMovedEventHandler?.Invoke(iMyPiece.Player, new EventPlayerMovement(currVectorMovement));
+                OnTilePieceChangeEventHandler?.Invoke(iMyPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
+                SetPieceAndMoveToParent(iMyPiece, iNextTile);
+
+                if (iMyPiece.GetComponent<Kodama>())
+                {
+                    TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
+                }
+
+                FinishTurn();
+            }
+            // For Air Drop
+            else if (CanAirDrop(iMyPiece, iNextTile)) // need to check if iMyPiece.Player == _currPlayer is useless
+            {
+                AirDrop(iMyPiece);
+                SetPieceAndMoveToParent(iMyPiece, iNextTile);
+                FinishTurn();
+            }
+            // Move back the piece to the tile where it belongs
+            else
+            {
+                SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
+            }
         }
 
         public int CheckWin()
@@ -457,7 +525,7 @@ namespace _Code._Script
         /// Undo a move for the player on the board
         /// </summary>
         /// <param name="move"></param>
-        public void UndoMove(Vector2 move)
+        public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
 
         }
