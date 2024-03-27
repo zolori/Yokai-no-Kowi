@@ -5,15 +5,21 @@ namespace _Code._Script
     public class DragAndDrop : MonoBehaviour
     {
         private Vector3 MousePosition { get; set; }
-        private bool BIsYourTurn { get; set; }
         private GameObject _lastHoveredArea = null;
         private GameObject _originArea = null;
-
+        
+        /// <summary>
+        /// GIVE THE MOUSE POSITION
+        /// </summary>
+        /// <returns>Return the mouse position</returns>
         private Vector3 GetMousePosition()
         {
             return Camera.main.WorldToScreenPoint(transform.position);
         }
 
+        /// <summary>
+        /// SNAP THE PIECE ON THE MOUSE AND SET FEW PARAMETERS TO HAVE IT ON TOP ON OTHER PIECES
+        /// </summary>
         private void OnMouseDown()
         {
             // /!\ Without this, the drag and drop can break
@@ -22,10 +28,10 @@ namespace _Code._Script
             gameObject.transform.position = new Vector3(xPos, yPos, -1f);
             GameManager.Instance.CurrSelectedPiece = gameObject;
             gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
-            
+            Debug.Log("aled");
             MousePosition = Input.mousePosition - GetMousePosition();
         }
-
+        
         private void OnMouseDrag()
         {
             transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition - MousePosition);
@@ -59,6 +65,7 @@ namespace _Code._Script
 
                 if (hoveringArea.GetComponent<Tile>() == gameObject.GetComponentInParent<Tile>())
                 {
+                    Debug.Log(_originArea);
                     if (_originArea == null)
                         _originArea = hoveringArea;
                     _originArea.GetComponent<Tile>().SetOriginLocationColor();
@@ -84,12 +91,16 @@ namespace _Code._Script
                 
                 if (dropArea.GetComponent<Tile>())
                 {
+                    if (dropArea.GetComponent<Tile>().bisPile)
+                        break;
+                    
                     GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
                     GameManager.Instance.CurrSelectedPiece = null;
                     
                     dropArea.GetComponent<Tile>().SetBaseColor();
                     _originArea.GetComponent<Tile>().SetBaseColor();
-                    _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
+                    if(_lastHoveredArea)
+                        _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                     _originArea = null;
                     _lastHoveredArea = null;
                     

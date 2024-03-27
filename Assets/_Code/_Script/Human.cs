@@ -52,13 +52,6 @@ namespace _Code._Script
                 
                 if(LastThreeMove.Count == 3)
                     CompareThreeLastMove();
-                
-                
-                //DEBUG ONLY
-                foreach (var move in LastThreeMove)
-                {
-                    Debug.Log(move);
-                }
             }
         }
 
