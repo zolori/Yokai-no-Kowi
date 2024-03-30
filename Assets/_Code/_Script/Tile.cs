@@ -19,7 +19,6 @@ namespace _Code._Script
         private void OnEnable()
         {
             GameManager.Instance.OnTilePieceChangeEventHandler += SetPieceOnTile;
-            Debug.Log(GameManager.Instance);
         }
 
         private void OnDestroy()

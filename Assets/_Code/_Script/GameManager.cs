@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using _Code._Script.ChildPieces;
+using _Code._Script.Enums;
 using _Code._Script.Event;
 using _Code._Script.UI;
 using Unity.Mathematics;
@@ -16,11 +17,14 @@ namespace _Code._Script
         // This event will be invoked to record the last player movement
         public EventHandler<EventPlayerMovement> OnPieceMovedEventHandler;
 
+        public EventHandler<EventGameOver> GameOverEventHandler;
+
         [SerializeField] private GameObject[] board, _pileJ1, _pileJ2;
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
 
         [SerializeField] private UIManager uiManagerReference;
 
+        private string _playerName1, _playerName2;
 
         public GameObject CurrSelectedPiece { get; set; }
 
@@ -37,8 +41,7 @@ namespace _Code._Script
 
         #endregion
 
-        public bool _isGameOver { private set; get; }
-        public int gameState { private set; get; }
+        public int GameState { private set; get; }
         public static GameManager Instance;
 
         private void Awake()
@@ -54,16 +57,34 @@ namespace _Code._Script
         private void Start()
         {
             InitGame();
-            /*_bPlayerAi = new bool[_numberOfPlayers];
-            _bPlayerAi[0] = false;
-            _bPlayerAi[1] = true;*/
         }
 
         /// <summary>
         /// INSTANTIATE, SET PIECES, PLACEMENT, ETC... FOR STARTING A NEW GAME
         /// </summary>
-        private void InitGame()
+        public void InitGame()
         {
+            Time.timeScale = 1;
+            uiManagerReference.InitUI();
+            foreach (var tile in board)
+            {
+                if(tile.GetComponent<Tile>().Piece)
+                    Destroy(tile.GetComponent<Tile>().Piece.gameObject);
+            }
+
+            foreach (var tile in _pileJ1)
+            {
+                if(tile.GetComponent<Tile>().Piece)
+                    Destroy(tile.GetComponent<Tile>().Piece.gameObject);
+            }
+            
+            foreach (var tile in _pileJ2)
+            {
+                if(tile.GetComponent<Tile>().Piece)
+                    Destroy(tile.GetComponent<Tile>().Piece.gameObject);
+            }
+            
+            
             _player1 = new Human(0,
                 "Player 1",
                 new[] { board[9], board[10], board[11] }
@@ -107,6 +128,7 @@ namespace _Code._Script
             SetPieceAndMoveToParent(koropokurru2.GetComponent<Piece>(), board[10].GetComponent<Tile>());
             SetPieceAndMoveToParent(tanuki2.GetComponent<Piece>(), board[9].GetComponent<Tile>());
             SetPieceAndMoveToParent(kodama2.GetComponent<Piece>(), board[7].GetComponent<Tile>());
+            
             /*
                 _player1.PossessedPieces.Add(kitsune1.GetComponent<Piece>());
                 _player1.PossessedPieces.Add(tanuki1.GetComponent<Piece>());
@@ -123,10 +145,9 @@ namespace _Code._Script
         /// <summary>
         /// return if this game is over or not
         /// </summary>
-        /// <param name="flag"></param>
-        public void GameOver(bool value)
+        private void GameOver(EventGameOver pGameOverState)
         {
-            _isGameOver = value;
+            GameOverEventHandler?.Invoke(this, pGameOverState);
         }
 
         /// <summary>
@@ -154,7 +175,6 @@ namespace _Code._Script
                 {
                     if (currVectorMovement == movement)
                     {
-                        Debug.Log(currVectorMovement);
                         return true;
                     }
                 }
@@ -204,14 +224,13 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
 
                 if (iMyPiece.GetComponent<Kodama>())
-                {
                     TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
-                }
-
+                
+                CheckForDraw();
                 FinishTurn();
             }
             // For Air Drop
-            else if (CanAirDrop(iMyPiece, iNextTile)) // need to check if iMyPiece.Player == _currPlayer is useless
+            else if (CanAirDrop(iMyPiece, iNextTile))
             {
                 AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
@@ -232,7 +251,7 @@ namespace _Code._Script
         {
             if (iPiece.GetComponent<Koropokkuru>())
             {
-                uiManagerReference.DisplayVictoryScreen(_currPlayer.Name);
+                GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
             }
 
             else if (iPiece.GetComponent<KodamaSamurai>())
@@ -330,7 +349,7 @@ namespace _Code._Script
         public void CheckForDraw()
         {
             if (Player1.BSameThreeLastMove && Player2.BSameThreeLastMove)
-                GameOver(false);
+                GameOver(new EventGameOver(EGameOverState.Draw));
         }
 
         /// <summary>
@@ -529,7 +548,7 @@ namespace _Code._Script
 
         public int CheckWin()
         {
-            return gameState;
+            return GameState;
         }
 
         /// <summary>
