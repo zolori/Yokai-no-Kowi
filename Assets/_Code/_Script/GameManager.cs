@@ -30,9 +30,7 @@ namespace _Code._Script
         #region Player
 
         private IPlayer _currPlayer, _inactivePlayer, _player1, _player2;
-
         public IPlayer Player1 => _player1;
-
         public IPlayer Player2 => _player2;
 
         #endregion
@@ -95,6 +93,7 @@ namespace _Code._Script
 
                     int positionIndex = positions[playerIndex][pieceIndex];
                     SetPieceAndMoveToParent(pieceComponent, board[positionIndex].GetComponent<Tile>());
+                    //SetPieceAndMoveToParent(pieceComponent, boardCopy[positionIndex].GetComponent<Tile>());
                 }
         }
 
@@ -178,8 +177,12 @@ namespace _Code._Script
                 OnTilePieceChangeEventHandler?.Invoke(iMyPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
 
-                if (iMyPiece.GetComponent<Kodama>())
-                    TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
+                foreach (GameObject tile in _currPlayer.EnemyLastLine)
+                {
+                    if (iNextTile.gameObject == tile)
+                        if (iMyPiece.GetComponent<Kodama>())
+                            TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
+                }
 
                 CheckForDraw();
                 FinishTurn();
@@ -261,18 +264,14 @@ namespace _Code._Script
         /// </summary>
         /// <param name="iTile"></param>
         /// <returns></returns>
-        private void TryTransformKodama(Kodama iKodama, Tile iTile)
+        private Piece TryTransformKodama(Kodama iKodama, Tile iTile)
         {
-            foreach (GameObject tile in _currPlayer.EnemyLastLine)
-            {
-                if (iTile.gameObject == tile)
-                {
-                    var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation);
-                    kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
-                    SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
-                    Destroy(iKodama.gameObject);
-                }
-            }
+            var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation);
+            kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
+            SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
+            Destroy(iKodama.gameObject);
+
+            return kodamaSamuraiTmp.GetComponent<Piece>();
         }
 
         public void CheckForDraw()
@@ -306,6 +305,11 @@ namespace _Code._Script
             OnTilePieceChangeEventHandler?.Invoke(iNextTile, new EventTilePieceChange(iMyPiece));     // Put the piece in the tile variable
         }
 
+        public void MoveForIA(Piece iMyPiece, Vector2 tile)
+        {
+
+        }
+
         /// <summary>
         /// CLACULATE THE VECTOR DIRECTION OF WHERE THE PLAYER WANT TO MOVE THE PIECE
         /// </summary>
@@ -325,37 +329,46 @@ namespace _Code._Script
         // A faire : finir applyMove() qui est une simulation
         // Opti : faire en sorte de garder les moves des pieces qui n'ont pas été bougées pour chaque joueur, pour ne pas avoir à recalculer à chaque fois.
 
+        public struct MoveHistory
+        {
+            public Piece piece { get; set; }
+            public Vector2 move { get; set; }
+            public bool isFromPile { get; set; }
+            public Piece pieceEaten { get; set; }
+        }
 
         Dictionary<Piece, Vector2> moves;
+        List<MoveHistory> movesHistory;
 
-        /// <summary>
-        /// Return the position of the target Tile
-        /// </summary>
-        /// <param name="iPieceToMove"></param>
-        /// <param name="iVectorMovement"></param>
-        /// <returns>The reference to the tile hit by the raycast</returns>
-        private bool MoveChecker(Piece iPieceToMove, Vector2 iVectorMovement)
-        {
-            Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
+        /*        /// <summary>
+                /// Return the position of the target Tile
+                /// </summary>
+                /// <param name="iPieceToMove"></param>
+                /// <param name="iVectorMovement"></param>
+                /// <returns>The reference to the tile hit by the raycast</returns>
+                private bool MoveChecker(Piece iPieceToMove, Vector2 iVectorMovement)
+                {
+                    Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
 
-            if (iPieceToMove.Player == Player2)
-                iVectorMovement *= -1;
+                    if (iPieceToMove.Player == Player2)
+                        iVectorMovement *= -1;
 
-            Vector2 targetPos = currPieceTile + iVectorMovement;
+                    Vector2 targetPos = currPieceTile + iVectorMovement;
 
-            RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
+                    RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
 
-            foreach (RaycastHit2D hit in hits)
-            {
-                GameObject dropArea = hit.collider.gameObject;
+                    foreach (RaycastHit2D hit in hits)
+                    {
+                        GameObject dropArea = hit.collider.gameObject;
 
-                if (dropArea.GetComponent<Tile>())
-                    if (CanMoveIA(iPieceToMove, dropArea.GetComponent<Tile>()))
-                        return true;
-            }
+                        if (dropArea.GetComponent<Tile>())
+                            if (CanMoveIA(iPieceToMove, dropArea.GetComponent<Tile>()))
+                                return true;
+                    }
 
-            return false;
-        }
+                    return false;
+                }
+        */
 
         /// <summary>
         /// GET A REFERENCE TO THE TILE WHERE THE IA TRY TO MOVE THE PIECE
@@ -431,15 +444,18 @@ namespace _Code._Script
         public void ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
         {
             Piece myPiece = shift.Key;
-            Vector2 move = shift.Value;
-            Tile nextTile = GetTileToMove(myPiece, move);
+            Vector2 myMove = shift.Value;
+            Tile nextTile = GetTileToMove(myPiece, myMove);
+            MoveHistory myMoveHistory = new MoveHistory { piece = myPiece, move = myMove, isFromPile = myPiece.bIsFromPile};
 
-            // It assumes that the move it legit as it's suppose to have already checked it
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
                 if (nextTile.Piece != null)
                     if (nextTile.Piece.Player != player)
+                    {
                         Eat(nextTile.Piece);
+                        myMoveHistory.pieceEaten = nextTile.Piece;
+                    }
 
                 Vector2 currVectorMovement = CalculateVectorDirection(myPiece.GetComponentInParent<Tile>().transform, nextTile.transform);
                 if (myPiece.Player == Player2)
@@ -447,27 +463,25 @@ namespace _Code._Script
 
                 OnPieceMovedEventHandler?.Invoke(myPiece.Player, new EventPlayerMovement(currVectorMovement)); // check if it's game is even
                 OnTilePieceChangeEventHandler?.Invoke(myPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
-                //SetPieceAndMoveToParent(myPiece, nextTile);
-                // FONCTION DE SIMULATION D'IA (C'EST DANS SA TETE)
+                SetPieceAndMoveToParent(myPiece, nextTile); // CETTE FONCTION DEVRAIT ETRE UNE FONCTION DE SIMULATION
 
-                if (myPiece.GetComponent<Kodama>())
-                    TryTransformKodama(myPiece.GetComponent<Kodama>(), nextTile);
+                foreach (GameObject tile in _currPlayer.EnemyLastLine)
+                {
+                    if (nextTile.gameObject == tile)
+                        if (myPiece.GetComponent<Kodama>())
+                            myPiece = TryTransformKodama(myPiece.GetComponent<Kodama>(), nextTile);
+                }
+
+                movesHistory.Add(myMoveHistory);
             }
-            // For Air Drop
             else if (CanAirDrop(myPiece, nextTile))
             {
+                movesHistory.Add(myMoveHistory);
                 AirDrop(myPiece);
                 SetPieceAndMoveToParent(myPiece, nextTile);
-                FinishTurn();
             }
-            // Move back the piece to the tile where it belongs
             else
                 SetPieceAndMoveToParent(myPiece, myPiece.GetComponentInParent<Tile>());
-        }
-
-        public int CheckWin()
-        {
-            return GameState;
         }
 
         /// <summary>
@@ -477,6 +491,15 @@ namespace _Code._Script
         public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
 
+        }
+
+        /// <summary>
+        /// return the game state
+        /// </summary>
+        /// <returns></returns>
+        public int CheckWin()
+        {
+            return GameState;
         }
 
         /// <summary>

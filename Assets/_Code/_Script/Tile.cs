@@ -35,14 +35,10 @@ namespace _Code._Script
         public void SetHoveringColor()
         {
             if (GameManager.Instance.CanMove(GameManager.Instance.CurrSelectedPiece.GetComponent<Piece>(), this) ||
-                    GameManager.Instance.CanAirDrop(GameManager.Instance.CurrSelectedPiece.GetComponent<Piece>(), this))
-            {
-                GetComponent<SpriteRenderer>().color = greenHoveringColor;
-            }
-            else
-            {
-                GetComponent<SpriteRenderer>().color = redHoveringColor;
-            }
+                    GameManager.Instance.CanAirDrop(GameManager.Instance.CurrSelectedPiece.GetComponent<Piece>(), this))            
+                GetComponent<SpriteRenderer>().color = greenHoveringColor;            
+            else            
+                GetComponent<SpriteRenderer>().color = redHoveringColor;            
         }
         
         public void SetBaseColor()
