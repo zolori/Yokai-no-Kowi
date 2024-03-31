@@ -1,4 +1,5 @@
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 namespace _Code._Script
 {
@@ -29,6 +30,11 @@ namespace _Code._Script
         {
             _player = newPlayer;
             transform.Rotate(0, 0, 180f);
+        }
+
+        public void ChangePlayer()
+        {
+            _player = Player1 ? Player2 : Player1;
         }
     }
 }

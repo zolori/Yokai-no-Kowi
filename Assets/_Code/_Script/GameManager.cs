@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using _Code._Script.ChildPieces;
 using _Code._Script.Enums;
 using _Code._Script.Event;
 using _Code._Script.UI;
 using Unity.Mathematics;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 namespace _Code._Script
 {
@@ -95,6 +97,9 @@ namespace _Code._Script
                     SetPieceAndMoveToParent(pieceComponent, board[positionIndex].GetComponent<Tile>());
                     //SetPieceAndMoveToParent(pieceComponent, boardCopy[positionIndex].GetComponent<Tile>());
                 }
+
+            moves = null;
+            movesHistory = null;
         }
 
         private void DestroyExistingPieces(GameObject[] tiles)
@@ -335,6 +340,9 @@ namespace _Code._Script
             public Vector2 move { get; set; }
             public bool isFromPile { get; set; }
             public Piece pieceEaten { get; set; }
+            public Tile currTile { get; set; }
+            public Tile prevTile { get; set; }
+            public int indexFromPile { get; set; }
         }
 
         Dictionary<Piece, Vector2> moves;
@@ -446,7 +454,9 @@ namespace _Code._Script
             Piece myPiece = shift.Key;
             Vector2 myMove = shift.Value;
             Tile nextTile = GetTileToMove(myPiece, myMove);
-            MoveHistory myMoveHistory = new MoveHistory { piece = myPiece, move = myMove, isFromPile = myPiece.bIsFromPile};
+            Tile currTile = myPiece.GetComponentInParent<Tile>();
+
+            MoveHistory myMoveHistory = new MoveHistory { piece = myPiece, move = myMove, isFromPile = myPiece.bIsFromPile, prevTile = currTile };
 
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
@@ -472,6 +482,8 @@ namespace _Code._Script
                             myPiece = TryTransformKodama(myPiece.GetComponent<Kodama>(), nextTile);
                 }
 
+                myMoveHistory.currTile = nextTile;
+
                 movesHistory.Add(myMoveHistory);
             }
             else if (CanAirDrop(myPiece, nextTile))
@@ -481,7 +493,7 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(myPiece, nextTile);
             }
             else
-                SetPieceAndMoveToParent(myPiece, myPiece.GetComponentInParent<Tile>());
+                SetPieceAndMoveToParent(myPiece, currTile);
         }
 
         /// <summary>
@@ -490,7 +502,19 @@ namespace _Code._Script
         /// <param name="move"></param>
         public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
+            MoveHistory myMoveHistory = movesHistory.Last();
 
+            if (!myMoveHistory.isFromPile)
+            {
+                SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
+                if (myMoveHistory.pieceEaten != null)
+                {
+                    myMoveHistory.pieceEaten.ChangePlayer(myMoveHistory.pieceEaten.Player);
+                    SetPieceAndMoveToParent(myMoveHistory.pieceEaten, myMoveHistory.currTile);
+                }
+            }
+            else            
+                SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
         }
 
         /// <summary>
@@ -526,6 +550,11 @@ namespace _Code._Script
         public IPlayer getPlayerThatsNotHisTurn()
         {
             return _currPlayer == Player1 ? Player2 : Player1;
+        }
+
+        public void ChangePlayer(IPlayer _player)
+        {
+            _player = _player == Player1 ? Player2 : Player1;
         }
     }
 }
