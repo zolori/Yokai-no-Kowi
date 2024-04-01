@@ -513,7 +513,7 @@ namespace _Code._Script
                     SetPieceAndMoveToParent(myMoveHistory.pieceEaten, myMoveHistory.currTile);
                 }
             }
-            else            
+            else
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
         }
 
@@ -530,31 +530,80 @@ namespace _Code._Script
         /// Evaluate the board from the perspective of player 1
         /// CRUCIAL FOR THE ENTIER ALGORITHM
         /// 
+        /// Utilisation de la boucle for au lieu de foreach car l'ordre de parcourt du tableau est important, et j'ai peur qu'à grande vitesse le tableau ne soit plus lu dans l'ordre.
+        /// 
         /// Evaluation :
-        /// - Type de pièce (kuro : 10000 + augmente en fonction de son avancée / kodama augmente en fonction de son avancée / kodama samourai : 10 / autre : 5)
-        /// - Avancée des pièces vers le camp de l'aversaire
-        /// - Nombre de pièces, de case/pièce couverte
-        /// - Nombre de pièce en danger/mangeable au prochain coup
+        /// V Type de pièce (kuro : 10000 + augmente en fonction de son avancée / kodama augmente en fonction de son avancée / kodama samourai : 10 / autre : 5)
+        /// V Avancée des pièces vers le camp de l'aversaire
+        /// - Nombre de pièces, de case/pièce couverte, en danger/mangeable au prochain coup 
         /// 
         /// </summary>
         /// <returns></returns>
-        public int EvaluateBoard()
+        public float EvaluateBoard()
         {
-            return 0;
+            float mark = 0;
+
+            for (int i = 0; i < board.Length; i++)
+            {
+                Tile tile = board[i].GetComponent<Tile>();
+                Piece piece = tile.GetComponent<Piece>();
+                float pieceValue = piece.Value;
+
+                mark += pieceValue;
+
+                float markAdjustment = piece.Player == _currPlayer ? 1 : -1;
+                float positionValue;
+
+                if (piece is KodamaSamurai)
+                {
+                    positionValue = i switch
+                    {
+                        0 or 1 or 2 => pieceValue + 9,
+                        3 or 4 or 5 => pieceValue + 12,
+                        6 or 7 or 8 => pieceValue + 12,
+                        9 or 10 or 11 => pieceValue + 9,
+                        _ => 0
+                    };
+                }
+                else // Covers Koropokkuru, Kodama, and the orther pieces :DDD
+                {
+                    bool isSpecialPiece = piece is Koropokkuru || piece is Kodama;
+                    positionValue = i switch
+                    {
+                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 0 : 0) : (isSpecialPiece ? 9 : 6)),
+                        3 or 4 or 5 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 3 : 2) : (isSpecialPiece ? 6 : 4)),
+                        6 or 7 or 8 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 6 : 4) : (isSpecialPiece ? 3 : 2)),
+                        9 or 10 or 11 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 9 : 6) : 0),
+                        _ => 0
+                    };
+                }
+
+                mark += markAdjustment * positionValue;
+            }
+
+            return mark;
         }
 
         #endregion
 
         #endregion
 
+        /// <summary>
+        /// Return the player that is not playing, as the IA can use it to simulate the opposite player's turn
+        /// </summary>
+        /// <returns></returns>
         public IPlayer getPlayerThatsNotHisTurn()
         {
             return _currPlayer == Player1 ? Player2 : Player1;
         }
 
-        public void ChangePlayer(IPlayer _player)
+        /// <summary>
+        /// Return the other player than the one in argument
+        /// </summary>
+        /// <param name="_player"></param>
+        public IPlayer ChangePlayer(IPlayer _player)
         {
-            _player = _player == Player1 ? Player2 : Player1;
+            return _player = _player == Player1 ? Player2 : Player1;
         }
     }
 }

@@ -64,7 +64,7 @@ namespace _Code._Script
             throw new NotImplementedException();
         }
 
-        private int MinMax(int depth, bool maximizingPlayer)
+        private float MinMax(int depth, bool maximizingPlayer)
         {
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
 
@@ -73,11 +73,11 @@ namespace _Code._Script
 
             if (maximizingPlayer)
             {
-                int maxEval = int.MinValue;
+                float maxEval = int.MinValue;
                 foreach (var move in _gameManager.GetLegalMoves(this))
                 {
                     _gameManager.ApplyMove(move, this);
-                    int eval = MinMax(depth - 1, false);
+                    float eval = MinMax(depth - 1, false);
                     maxEval = Math.Max(maxEval, eval);
                     _gameManager.UndoMove(move);
                 }
@@ -85,11 +85,11 @@ namespace _Code._Script
             }
             else
             {
-                int minEval = int.MaxValue;
+                float minEval = int.MaxValue;
                 foreach (var move in _gameManager.GetLegalMoves(opponent))
                 {
                     _gameManager.ApplyMove(move, opponent);
-                    int eval = MinMax(depth - 1, true);
+                    float eval = MinMax(depth - 1, true);
                     minEval = Math.Min(minEval, eval);
                     _gameManager.UndoMove(move);
                 }

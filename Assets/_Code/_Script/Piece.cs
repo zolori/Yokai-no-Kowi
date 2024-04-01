@@ -9,6 +9,7 @@ namespace _Code._Script
         private IPlayer _player;
         private string _name;
         private Sprite _sprite;
+        public float Value { get; set; }
 
         protected Piece(IPlayer player, Tile iTileToSpawn)
         {
@@ -30,11 +31,6 @@ namespace _Code._Script
         {
             _player = newPlayer;
             transform.Rotate(0, 0, 180f);
-        }
-
-        public void ChangePlayer()
-        {
-            _player = Player1 ? Player2 : Player1;
         }
     }
 }

@@ -14,6 +14,7 @@ namespace _Code._Script.ChildPieces
 
         public Koropokkuru(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
         {
+            Value = 100;
         }
     }
 }

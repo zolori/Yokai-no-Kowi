@@ -13,6 +13,7 @@ namespace _Code._Script.ChildPieces
 
         public Kodama(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
         {
+            Value = 2;
         }
     }
 }

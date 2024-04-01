@@ -14,6 +14,7 @@ namespace _Code._Script.ChildPieces
 
         public Tanuki(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
         {
+            Value = 5;
         }
     }
 }
