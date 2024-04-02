@@ -8,6 +8,20 @@ namespace _Code._Script
 {
     public class Human : IPlayer
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool BSameThreeLastMove { get; set; }
+        public List<Piece> PossessedPieces { get; set; }
+        public List<Vector2> LastThreeMove { get; set; }
+        public GameObject[] EnemyLastLine { get; set; }
+        public bool isPlaying { get; set; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="enemyLastLine"></param>
         public Human(int id, string name, GameObject[] enemyLastLine)
         {
             Id = id;
@@ -16,21 +30,10 @@ namespace _Code._Script
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             BSameThreeLastMove = false;
+            isPlaying = false;
+            PossessedPieces = new List<Piece>();
         }
 
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public bool BSameThreeLastMove { get; set; }
-        public List<Piece> PossessedPieces { get; set; }
-        public List<Vector2> LastThreeMove { get; set; }
-        public GameObject[] EnemyLastLine { get; set; }
-
-        Tile IPlayer.Play()
-        {
-            Tile t = null;
-            return t;
-        }
-        
         /// <summary>
         /// RECORD THE LAST THREE MOVEMENTS DONE BY THE PLAYER
         /// </summary>

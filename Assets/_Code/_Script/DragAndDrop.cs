@@ -28,7 +28,6 @@ namespace _Code._Script
             gameObject.transform.position = new Vector3(xPos, yPos, -1f);
             GameManager.Instance.CurrSelectedPiece = gameObject;
             gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
-            Debug.Log("aled");
             MousePosition = Input.mousePosition - GetMousePosition();
         }
         
@@ -65,7 +64,6 @@ namespace _Code._Script
 
                 if (hoveringArea.GetComponent<Tile>() == gameObject.GetComponentInParent<Tile>())
                 {
-                    Debug.Log(_originArea);
                     if (_originArea == null)
                         _originArea = hoveringArea;
                     _originArea.GetComponent<Tile>().SetOriginLocationColor();

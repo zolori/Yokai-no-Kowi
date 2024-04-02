@@ -17,8 +17,8 @@ namespace _Code._Script
         List<Vector2> LastThreeMove { get; set; }
         
         GameObject[] EnemyLastLine { get; set; }
-        
-        public Tile Play();
+
+        public bool isPlaying { get; set; }
 
         void SetLastMovement(object receiver, EventPlayerMovement e);
 

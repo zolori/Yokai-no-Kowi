@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Code._Script.ChildPieces;
@@ -22,8 +23,10 @@ namespace _Code._Script
         public EventHandler<EventGameOver> GameOverEventHandler;
 
         [SerializeField] private GameObject[] board, _pileJ1, _pileJ2;
-        [SerializeField] private GameObject[] boardCopy, _pileJ1Copy, _pileJ2Copy;
+        //[SerializeField] private GameObject[] boardCopy, _pileJ1Copy, _pileJ2Copy;
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
+
+        [SerializeField] private int GameMode { get; set; }
 
         [SerializeField] private UIManager uiManagerReference;
 
@@ -52,6 +55,8 @@ namespace _Code._Script
 
         private void Start()
         {
+            GameMode = PlayerPrefs.GetInt("GameMode");
+
             InitGame();
         }
 
@@ -60,6 +65,8 @@ namespace _Code._Script
         /// </summary>
         public void InitGame()
         {
+            GameState = -2;
+
             Time.timeScale = 1;
             uiManagerReference.InitUI();
 
@@ -68,9 +75,32 @@ namespace _Code._Script
             DestroyExistingPieces(_pileJ1);
             DestroyExistingPieces(_pileJ2);
 
-            _player1 = new Human(0, "Player 1", new[] { board[9], board[10], board[11] });
-            _player2 = new Human(1, "Player 2", new[] { board[0], board[1], board[2] });
+            if (GameMode == 1)
+            {
+                _player1 = new Human(0, "Player 1", new[] { board[9], board[10], board[11] });
+                _player2 = new Human(1, "Player 2", new[] { board[0], board[1], board[2] });
+            }
+            else if (GameMode == 2)
+            {
+                _player1 = new Human(0, "Player 1", new[] { board[9], board[10], board[11] });
+                _player2 = new IA(0, "Player 1", new[] { board[0], board[1], board[2] });
+            }
 
+/*            for (int i = 0; i < 11; i++)
+            {
+                Tile tile = board[i].GetComponent<Tile>();
+                Piece piece = tile.Piece;
+
+                if (i == 0 || i == 1 || i == 2 || i == 4)
+                {
+
+                }
+                if (i == 0 || i == 1 || i == 2 || i == 4)
+                {
+
+                }
+            }
+*/
             _currPlayer = Player1;
             _inactivePlayer = Player2;
 
@@ -78,9 +108,10 @@ namespace _Code._Script
 
             GameObject[] pieces = { kitsune, koropokkuru, tanuki, kodama };
 
+            // Positions initiales pièces joueurs
             int[][] positions = {
-                new int[] { 0, 1, 2, 4 }, // Positions initiales pièces Player1
-                new int[] { 11, 10, 9, 7 } // Positions initiales pièces Player2
+                new int[] { 0, 1, 2, 4 },
+                new int[] { 11, 10, 9, 7 }
             };
 
             Quaternion[] rotations = { Quaternion.identity, Quaternion.Euler(0, 0, 180) };
@@ -92,6 +123,7 @@ namespace _Code._Script
                     var pieceInstance = Instantiate(pieces[pieceIndex], Vector3.zero, rotations[playerIndex]);
                     var pieceComponent = pieceInstance.GetComponent<Piece>();
                     pieceComponent.Player = players[playerIndex];
+                    players[playerIndex].PossessedPieces.Add(pieceComponent);
 
                     int positionIndex = positions[playerIndex][pieceIndex];
                     SetPieceAndMoveToParent(pieceComponent, board[positionIndex].GetComponent<Tile>());
@@ -100,6 +132,11 @@ namespace _Code._Script
 
             moves = null;
             movesHistory = null;
+
+            if (GameMode == 2)
+            {
+                Play();
+            }
         }
 
         private void DestroyExistingPieces(GameObject[] tiles)
@@ -112,6 +149,25 @@ namespace _Code._Script
                     Destroy(tileComponent.Piece.gameObject);
                 }
             }
+        }
+
+        private void Play()
+        {
+            float bestMoveValue;
+
+            if (_currPlayer.isPlaying)
+                return;
+
+            _currPlayer.isPlaying = true;
+
+            if (_currPlayer is IA ia)
+            {
+                bestMoveValue = ia.MinMax(5, true);
+
+                StartCoroutine(FinishTurn());
+            }
+
+            Debug.Log("Sorti du play !");
         }
 
         /// <summary>
@@ -190,14 +246,14 @@ namespace _Code._Script
                 }
 
                 CheckForDraw();
-                FinishTurn();
+                StartCoroutine(FinishTurn());
             }
             // For Air Drop
             else if (CanAirDrop(iMyPiece, iNextTile))
             {
                 AirDrop(iMyPiece);
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
-                FinishTurn();
+                StartCoroutine(FinishTurn());
             }
             // Move back the piece to the tile where it belongs
             else
@@ -217,7 +273,7 @@ namespace _Code._Script
         /// TO ADD THE CURRENT PIECE ON THE TILE INTO THE PLAYER'S PILE
         /// </summary>
         /// <param name="iPiece"></param>
-        private void Eat(Piece iPiece)
+        public void Eat(Piece iPiece)
         {
             if (iPiece.GetComponent<Koropokkuru>())
                 GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
@@ -288,12 +344,18 @@ namespace _Code._Script
         /// <summary>
         /// TO UPDATE THE PLAYER CURRENTLY PLAYING AT THE END OF THE TURN
         /// </summary>
-        public void FinishTurn()
+        public IEnumerator FinishTurn()
         {
+            Debug.Log("Changement de tour");
+
+            _currPlayer.isPlaying = false;
             _inactivePlayer = _currPlayer;
             _currPlayer = _currPlayer == Player1 ? Player2 : Player1;
 
             uiManagerReference.DisplayPlayerTurnText(_currPlayer.Name);
+
+            yield return new WaitForSeconds(0.1f);
+            Play();
         }
 
         /// <summary>
@@ -437,8 +499,12 @@ namespace _Code._Script
             {
                 if (!piece.bIsFromPile)
                     foreach (Vector2 mouvements in piece.VectorMovements)
-                        if (CanMoveIA(piece, GetTileToMove(piece, mouvements)))
-                            moves.Add(piece, mouvements);
+                    {
+                        Tile targetTile = GetTileToMove(piece, mouvements);
+                        if (targetTile != null)
+                            if (CanMoveIA(piece, targetTile))
+                                moves.Add(piece, mouvements);
+                    }
             }
 
             return moves;
