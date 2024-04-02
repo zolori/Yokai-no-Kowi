@@ -28,7 +28,6 @@ namespace _Code._Script
             gameObject.transform.position = new Vector3(xPos, yPos, -1f);
             GameManager.Instance.CurrSelectedPiece = gameObject;
             gameObject.GetComponent<SpriteRenderer>().sortingOrder = 2;
-            Debug.Log("aled");
             MousePosition = Input.mousePosition - GetMousePosition();
         }
         
