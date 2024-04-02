@@ -9,11 +9,23 @@ namespace _Code._Script.UI
         [SerializeField] private GameObject mainMenu, pvpMenu;
         [SerializeField] private TextMeshProUGUI player1InputField, player2InputField;
 
-       
-        public void PlayGame()
+
+        public void PlayPVP()
         {
+            PlayerPrefs.SetInt("GameMode", 1);
+            PlayerPrefs.Save();
+
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
+
+        public void PlayPVM()
+        {
+            PlayerPrefs.SetInt("GameMode", 2);
+            PlayerPrefs.Save();
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
+
 
         public void QuitGame()
         {
@@ -31,6 +43,8 @@ namespace _Code._Script.UI
             pvpMenu.SetActive(false);
             mainMenu.SetActive(true);
         }
+
+
         
         // NOT WORKING, MUST BE FIX
         /*public void OnPlayerNameChanged(int pPlayerindex)

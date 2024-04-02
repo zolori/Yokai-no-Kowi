@@ -64,7 +64,6 @@ namespace _Code._Script
 
                 if (hoveringArea.GetComponent<Tile>() == gameObject.GetComponentInParent<Tile>())
                 {
-                    Debug.Log(_originArea);
                     if (_originArea == null)
                         _originArea = hoveringArea;
                     _originArea.GetComponent<Tile>().SetOriginLocationColor();

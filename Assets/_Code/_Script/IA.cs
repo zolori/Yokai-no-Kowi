@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using _Code._Script.Event;
 using UnityEngine;
 
@@ -13,8 +14,9 @@ namespace _Code._Script
         public List<Piece> PossessedPieces { get; set; }
         public List<Vector2> LastThreeMove { get; set; }
         public GameObject[] EnemyLastLine { get; set; }
+        public bool isPlaying { get; set; }
 
-        private GameManager _gameManager;
+        private GameManager _gameManager = GameManager.Instance;
 
         /// <summary>
         /// Constructor
@@ -28,31 +30,47 @@ namespace _Code._Script
             Name = name;
             EnemyLastLine = enemyLastLine;
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
-        }
-
-        Tile IPlayer.Play()
-        {
-            // TODO: Choose a piece to move
-            GameManager.Instance.FinishTurn();
-            Tile t = null;
-            return t;
+            isPlaying = false;
+            PossessedPieces = new List<Piece>();
         }
 
         public void SetLastMovement(object receiver, EventPlayerMovement e)
         {
-            throw new NotImplementedException();
+            if (receiver.Equals(this))
+            {
+                if (LastThreeMove.Count < 3)
+                {
+                    LastThreeMove.Insert(0, e.VectorMovement);
+                }
+                else
+                {
+                    LastThreeMove.RemoveAt(2);
+                    LastThreeMove.Insert(0, e.VectorMovement);
+                }
+
+                if (LastThreeMove.Count == 3)
+                    CompareThreeLastMove();
+            }
         }
 
         public void CompareThreeLastMove()
         {
-            throw new NotImplementedException();
+            var vectorToTest1 = LastThreeMove.ElementAt(0);
+            var vectorToTest2 = LastThreeMove.ElementAt(1);
+            var vectorToTest3 = LastThreeMove.ElementAt(2);
+            vectorToTest2 *= -1;
+
+            if (vectorToTest1 == vectorToTest3 && vectorToTest1 == vectorToTest2)
+                BSameThreeLastMove = true;
+            else
+                BSameThreeLastMove = false;
         }
 
         protected virtual Piece ChooseAPieceToMove()
         {
             // TODO: Pick a random piece from the possessed pieces list
             // TODO: And try to check the better move with it
-            
+
             throw new NotImplementedException();
         }
 
@@ -64,12 +82,17 @@ namespace _Code._Script
             throw new NotImplementedException();
         }
 
-        private float MinMax(int depth, bool maximizingPlayer)
+        public float MinMax(int depth, bool maximizingPlayer)
         {
+            Debug.Log("Minmax --> depth : " + depth + " + max : " + maximizingPlayer);
+
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
 
-            if (depth == 0 || _gameManager.CheckWin() != 0)
+            if (depth == 0 || _gameManager.CheckWin() != -2)
+            {
+                Debug.Log("feuille ou GameOver");
                 return _gameManager.EvaluateBoard();
+            }
 
             if (maximizingPlayer)
             {
