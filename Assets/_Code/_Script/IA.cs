@@ -29,6 +29,7 @@ namespace _Code._Script
             Id = id;
             Name = name;
             EnemyLastLine = enemyLastLine;
+            LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             isPlaying = false;
             PossessedPieces = new List<Piece>();
@@ -97,24 +98,32 @@ namespace _Code._Script
             if (maximizingPlayer)
             {
                 float maxEval = int.MinValue;
-                foreach (var move in _gameManager.GetLegalMoves(this))
+                foreach (var moves in _gameManager.GetLegalMoves(this))
                 {
-                    _gameManager.ApplyMove(move, this);
-                    float eval = MinMax(depth - 1, false);
-                    maxEval = Math.Max(maxEval, eval);
-                    _gameManager.UndoMove(move);
+                    foreach (Vector2 move in moves.Value)
+                    {
+                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
+                        _gameManager.ApplyMove(mouvement, this);
+                        float eval = MinMax(depth - 1, false);
+                        maxEval = Math.Max(maxEval, eval);
+                        _gameManager.UndoMove(mouvement);
+                    }
                 }
                 return maxEval;
             }
             else
             {
                 float minEval = int.MaxValue;
-                foreach (var move in _gameManager.GetLegalMoves(opponent))
+                foreach (var moves in _gameManager.GetLegalMoves(opponent))
                 {
-                    _gameManager.ApplyMove(move, opponent);
-                    float eval = MinMax(depth - 1, true);
-                    minEval = Math.Min(minEval, eval);
-                    _gameManager.UndoMove(move);
+                    foreach(Vector2 move in moves.Value)
+                    {
+                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
+                        _gameManager.ApplyMove(mouvement, opponent);
+                        float eval = MinMax(depth - 1, true);
+                        minEval = Math.Min(minEval, eval);
+                        _gameManager.UndoMove(mouvement);
+                    }
                 }
                 return minEval;
             }

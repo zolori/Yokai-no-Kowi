@@ -83,24 +83,9 @@ namespace _Code._Script
             else if (GameMode == 2)
             {
                 _player1 = new Human(0, "Player 1", new[] { board[9], board[10], board[11] });
-                _player2 = new IA(0, "Player 1", new[] { board[0], board[1], board[2] });
+                _player2 = new IA(1, "Player 2", new[] { board[0], board[1], board[2] });
             }
 
-/*            for (int i = 0; i < 11; i++)
-            {
-                Tile tile = board[i].GetComponent<Tile>();
-                Piece piece = tile.Piece;
-
-                if (i == 0 || i == 1 || i == 2 || i == 4)
-                {
-
-                }
-                if (i == 0 || i == 1 || i == 2 || i == 4)
-                {
-
-                }
-            }
-*/
             _currPlayer = Player1;
             _inactivePlayer = Player2;
 
@@ -130,8 +115,8 @@ namespace _Code._Script
                     //SetPieceAndMoveToParent(pieceComponent, boardCopy[positionIndex].GetComponent<Tile>());
                 }
 
-            moves = null;
-            movesHistory = null;
+            moves = new Dictionary<Piece, List<Vector2>>();
+            movesHistory = new List<MoveHistory>();
 
             if (GameMode == 2)
             {
@@ -243,7 +228,7 @@ namespace _Code._Script
                     if (iNextTile.gameObject == tile)
                         if (iMyPiece.GetComponent<Kodama>())
                             TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
-                        else if(iMyPiece.GetComponent<Koropokkuru>())
+                        else if (iMyPiece.GetComponent<Koropokkuru>())
                             GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
                 }
 
@@ -261,7 +246,7 @@ namespace _Code._Script
             else
                 SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
         }
-        
+
         /// <summary>
         /// TO PLACE A PIECE TAKEN FROM THE PLAYER'S PILE
         /// </summary>
@@ -282,7 +267,7 @@ namespace _Code._Script
                 iPiece.bIsFromPile = true;
                 iPiece.ChangePlayer(iPiece.Player == Player1 ? Player2 : Player1);
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
-                GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
+                GameState = _currPlayer == Player1 ? 1 : -1;
             }
 
             else if (iPiece.GetComponent<KodamaSamurai>())
@@ -355,6 +340,9 @@ namespace _Code._Script
         {
             Debug.Log("Changement de tour");
 
+            if (GameState == -1 || GameState == 0 || GameState == 1)
+                GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
+
             _currPlayer.isPlaying = false;
             _inactivePlayer = _currPlayer;
             _currPlayer = _currPlayer == Player1 ? Player2 : Player1;
@@ -377,11 +365,6 @@ namespace _Code._Script
             pieceTransform.parent = tileTransform; // Set parent
             pieceTransform.position = new Vector3(tileTransform.position.x, tileTransform.position.y, 0f); // Move to parent
             OnTilePieceChangeEventHandler?.Invoke(iNextTile, new EventTilePieceChange(iMyPiece));     // Put the piece in the tile variable
-        }
-
-        public void MoveForIA(Piece iMyPiece, Vector2 tile)
-        {
-
         }
 
         /// <summary>
@@ -414,7 +397,7 @@ namespace _Code._Script
             public int indexFromPile { get; set; }
         }
 
-        Dictionary<Piece, Vector2> moves;
+        Dictionary<Piece, List<Vector2>> moves;
         List<MoveHistory> movesHistory;
 
         /*        /// <summary>
@@ -498,9 +481,10 @@ namespace _Code._Script
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
-        public Dictionary<Piece, Vector2> GetLegalMoves(IPlayer player)
+        public Dictionary<Piece, List<Vector2>> GetLegalMoves(IPlayer player)
         {
-            moves = new Dictionary<Piece, Vector2>();
+            moves = new Dictionary<Piece, List<Vector2>>();
+            List<Vector2> moveList = new List<Vector2>();
 
             foreach (Piece piece in player.PossessedPieces)
             {
@@ -510,8 +494,10 @@ namespace _Code._Script
                         Tile targetTile = GetTileToMove(piece, mouvements);
                         if (targetTile != null)
                             if (CanMoveIA(piece, targetTile))
-                                moves.Add(piece, mouvements);
+                                moveList.Add(mouvements);
                     }
+                moves.Add(piece, moveList);
+                moveList = new List<Vector2>();
             }
 
             return moves;
@@ -530,6 +516,9 @@ namespace _Code._Script
             Tile currTile = myPiece.GetComponentInParent<Tile>();
 
             MoveHistory myMoveHistory = new MoveHistory { piece = myPiece, move = myMove, isFromPile = myPiece.bIsFromPile, prevTile = currTile };
+
+            if (nextTile == null)
+                return;
 
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
@@ -619,7 +608,11 @@ namespace _Code._Script
             for (int i = 0; i < board.Length; i++)
             {
                 Tile tile = board[i].GetComponent<Tile>();
-                Piece piece = tile.GetComponent<Piece>();
+                Piece piece = tile.Piece;
+
+                if (piece == null)
+                    return 0;
+
                 float pieceValue = piece.Value;
 
                 mark += pieceValue;

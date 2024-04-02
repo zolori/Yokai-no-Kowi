@@ -9,11 +9,14 @@ namespace _Code._Script
         private IPlayer _player;
         private string _name;
         private Sprite _sprite;
+        public string _ownerName;
+
         public float Value { get; set; }
 
         protected Piece(IPlayer player, Tile iTileToSpawn)
         {
             _player = player;
+            _ownerName = player.Name;
             GameManager.Instance.SetPieceAndMoveToParent(this, iTileToSpawn);
         }
 
