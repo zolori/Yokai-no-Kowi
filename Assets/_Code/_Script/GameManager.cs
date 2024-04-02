@@ -8,7 +8,6 @@ using _Code._Script.Event;
 using _Code._Script.UI;
 using Unity.Mathematics;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 namespace _Code._Script
 {
@@ -147,7 +146,7 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(5, true);
+                bestMoveValue = ia.MinMax(1, true);
 
                 StartCoroutine(FinishTurn());
             }
@@ -510,6 +509,7 @@ namespace _Code._Script
         /// <param name="player"></param>
         public void ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
         {
+
             Piece myPiece = shift.Key;
             Vector2 myMove = shift.Value;
             Tile nextTile = GetTileToMove(myPiece, myMove);
@@ -535,6 +535,7 @@ namespace _Code._Script
 
                 OnPieceMovedEventHandler?.Invoke(myPiece.Player, new EventPlayerMovement(currVectorMovement)); // check if it's game is even
                 OnTilePieceChangeEventHandler?.Invoke(myPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
+                Debug.Log("Apply move : " + shift.Key + " " + shift.Value);
                 SetPieceAndMoveToParent(myPiece, nextTile); // CETTE FONCTION DEVRAIT ETRE UNE FONCTION DE SIMULATION
 
                 foreach (GameObject tile in _currPlayer.EnemyLastLine)
@@ -564,7 +565,11 @@ namespace _Code._Script
         /// <param name="move"></param>
         public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
+            Debug.Log("Undo move : " + move.Key + " " + move.Value);
             MoveHistory myMoveHistory = movesHistory.Last();
+
+            if(GameState == 1 || GameState == 0 || GameState == -1)
+                GameState = -2;
 
             if (!myMoveHistory.isFromPile)
             {

@@ -83,7 +83,7 @@ namespace _Code._Script
             throw new NotImplementedException();
         }
 
-        public float MinMax(int depth, bool maximizingPlayer)
+        public  float MinMax(int depth, bool maximizingPlayer)
         {
             Debug.Log("Minmax --> depth : " + depth + " + max : " + maximizingPlayer);
 
@@ -97,6 +97,7 @@ namespace _Code._Script
 
             if (maximizingPlayer)
             {
+                Debug.Log("*********IA");
                 float maxEval = int.MinValue;
                 foreach (var moves in _gameManager.GetLegalMoves(this))
                 {
@@ -113,6 +114,7 @@ namespace _Code._Script
             }
             else
             {
+                Debug.Log("-------Joueur");
                 float minEval = int.MaxValue;
                 foreach (var moves in _gameManager.GetLegalMoves(opponent))
                 {
