@@ -187,6 +187,8 @@ namespace _Code._Script
                     if (iNextTile.gameObject == tile)
                         if (iMyPiece.GetComponent<Kodama>())
                             TryTransformKodama(iMyPiece.GetComponent<Kodama>(), iNextTile);
+                        else if(iMyPiece.GetComponent<Koropokkuru>())
+                            GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
                 }
 
                 CheckForDraw();
@@ -203,7 +205,7 @@ namespace _Code._Script
             else
                 SetPieceAndMoveToParent(iMyPiece, iMyPiece.GetComponentInParent<Tile>());
         }
-
+        
         /// <summary>
         /// TO PLACE A PIECE TAKEN FROM THE PLAYER'S PILE
         /// </summary>
@@ -220,7 +222,12 @@ namespace _Code._Script
         private void Eat(Piece iPiece)
         {
             if (iPiece.GetComponent<Koropokkuru>())
+            {
+                iPiece.bIsFromPile = true;
+                iPiece.ChangePlayer(iPiece.Player == Player1 ? Player2 : Player1);
+                SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
+            }
 
             else if (iPiece.GetComponent<KodamaSamurai>())
             {
