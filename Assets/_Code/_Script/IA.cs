@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using _Code._Script.Event;
 using UnityEngine;
 
@@ -67,7 +68,7 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
-        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, Vector2> bestMove)
+        public async Task<float> MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, Vector2> bestMove)
         {
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
 
@@ -85,11 +86,11 @@ namespace _Code._Script
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
                         bestMove = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value);
-                        _gameManager.ApplyMove(mouvement, this);
-                        float eval = MinMax(depth - 1, false, ref bestMove);
+                        await _gameManager.ApplyMove(mouvement, this);
+                        float eval = await MinMax(depth - 1, false, ref bestMove);
                         maxEval = Math.Max(maxEval, eval);
                         Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
-                        _gameManager.UndoMove(mouvement);
+                        await _gameManager.UndoMove(mouvement);
                     }
                 }
                 return maxEval;
@@ -102,10 +103,10 @@ namespace _Code._Script
                     foreach(Vector2 move in moves.Value)
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
-                        _gameManager.ApplyMove(mouvement, opponent);
-                        float eval = MinMax(depth - 1, true, ref bestMove);
+                        await _gameManager.ApplyMove(mouvement, opponent);
+                        float eval = await MinMax(depth - 1, true, ref bestMove);
                         minEval = Math.Min(minEval, eval);
-                        _gameManager.UndoMove(mouvement);
+                        await _gameManager.UndoMove(mouvement);
                     }
                 }
                 return minEval;

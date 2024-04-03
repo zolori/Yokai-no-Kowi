@@ -136,24 +136,26 @@ namespace _Code._Script
             }
         }
 
-        private void Play()
+        private async Task<bool> Play()
         {
             KeyValuePair<Piece, Vector2> bestMove = new KeyValuePair<Piece, Vector2>();
             float bestMoveValue;
 
             if (_currPlayer.isPlaying)
-                return;
+                return false;
 
             _currPlayer.isPlaying = true;
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(3, true, ref bestMove);
-                //UndoMove(bestMove);
+                bestMoveValue = await ia.MinMax(3, true, ref bestMove);
+                
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
 
                 Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value));
             }
+
+            return true;
         }
 
         /// <summary>
