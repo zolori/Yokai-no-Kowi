@@ -146,8 +146,9 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(1, true);
-
+                bestMoveValue = ia.MinMax(2, true);
+                Debug.Log("Best move value :" + bestMoveValue);
+                
                 StartCoroutine(FinishTurn());
             }
 
@@ -264,7 +265,7 @@ namespace _Code._Script
             if (iPiece.GetComponent<Koropokkuru>())
             {
                 iPiece.bIsFromPile = true;
-                iPiece.ChangePlayer(iPiece.Player == Player1 ? Player2 : Player1);
+                iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 GameState = _currPlayer == Player1 ? 1 : -1;
             }
@@ -283,7 +284,7 @@ namespace _Code._Script
             else
             {
                 iPiece.bIsFromPile = true;
-                iPiece.ChangePlayer(iPiece.Player == Player1 ? Player2 : Player1);
+                iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 //ChangePieceFromList(iPiece);
             }
@@ -397,7 +398,7 @@ namespace _Code._Script
         }
 
         Dictionary<Piece, List<Vector2>> moves;
-        List<MoveHistory> movesHistory;
+        private List<MoveHistory> movesHistory;
 
         /*        /// <summary>
                 /// Return the position of the target Tile
@@ -515,7 +516,13 @@ namespace _Code._Script
             Tile nextTile = GetTileToMove(myPiece, myMove);
             Tile currTile = myPiece.GetComponentInParent<Tile>();
 
-            MoveHistory myMoveHistory = new MoveHistory { piece = myPiece, move = myMove, isFromPile = myPiece.bIsFromPile, prevTile = currTile };
+            MoveHistory myMoveHistory = new MoveHistory()
+            {
+                piece = myPiece, 
+                move = myMove, 
+                isFromPile = myPiece.bIsFromPile, 
+                prevTile = currTile
+            };
 
             if (nextTile == null)
                 return;
@@ -525,8 +532,8 @@ namespace _Code._Script
                 if (nextTile.Piece != null)
                     if (nextTile.Piece.Player != player)
                     {
-                        Eat(nextTile.Piece);
                         myMoveHistory.pieceEaten = nextTile.Piece;
+                        Eat(nextTile.Piece);
                     }
 
                 Vector2 currVectorMovement = CalculateVectorDirection(myPiece.GetComponentInParent<Tile>().transform, nextTile.transform);
@@ -535,7 +542,6 @@ namespace _Code._Script
 
                 OnPieceMovedEventHandler?.Invoke(myPiece.Player, new EventPlayerMovement(currVectorMovement)); // check if it's game is even
                 OnTilePieceChangeEventHandler?.Invoke(myPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
-                Debug.Log("Apply move : " + shift.Key + " " + shift.Value);
                 SetPieceAndMoveToParent(myPiece, nextTile); // CETTE FONCTION DEVRAIT ETRE UNE FONCTION DE SIMULATION
 
                 foreach (GameObject tile in _currPlayer.EnemyLastLine)
@@ -565,23 +571,31 @@ namespace _Code._Script
         /// <param name="move"></param>
         public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
-            Debug.Log("Undo move : " + move.Key + " " + move.Value);
             MoveHistory myMoveHistory = movesHistory.Last();
+            //Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
+                      //"\n Last Move : " + myMoveHistory.move +
+                      //"\n Previous Tile : " + myMoveHistory.prevTile.transform.position + 
+                      //"\n Current Tile : " + myMoveHistory.currTile.transform.position);
 
             if(GameState == 1 || GameState == 0 || GameState == -1)
                 GameState = -2;
 
             if (!myMoveHistory.isFromPile)
             {
+                OnTilePieceChangeEventHandler?.Invoke(myMoveHistory.piece.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
                 if (myMoveHistory.pieceEaten != null)
                 {
-                    myMoveHistory.pieceEaten.ChangePlayer(myMoveHistory.pieceEaten.Player);
+                    OnTilePieceChangeEventHandler?.Invoke(myMoveHistory.pieceEaten.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
+                    myMoveHistory.pieceEaten.ChangePiecePlayer(SwitchPlayer(myMoveHistory.pieceEaten.Player));
                     SetPieceAndMoveToParent(myMoveHistory.pieceEaten, myMoveHistory.currTile);
+                    myMoveHistory.pieceEaten.bIsFromPile = false;
                 }
             }
             else
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
+
+            movesHistory.Remove(myMoveHistory);
         }
 
         /// <summary>
@@ -609,14 +623,13 @@ namespace _Code._Script
         public float EvaluateBoard()
         {
             float mark = 0;
-
             for (int i = 0; i < board.Length; i++)
             {
                 Tile tile = board[i].GetComponent<Tile>();
                 Piece piece = tile.Piece;
 
                 if (piece == null)
-                    return 0;
+                    continue;
 
                 float pieceValue = piece.Value;
 
@@ -651,7 +664,6 @@ namespace _Code._Script
 
                 mark += markAdjustment * positionValue;
             }
-
             return mark;
         }
 
@@ -672,9 +684,9 @@ namespace _Code._Script
         /// Return the other player than the one in argument
         /// </summary>
         /// <param name="_player"></param>
-        public IPlayer ChangePlayer(IPlayer _player)
+        public IPlayer SwitchPlayer(IPlayer pPlayer)
         {
-            return _player = _player == Player1 ? Player2 : Player1;
+            return pPlayer == Player1 ? Player2 : Player1;
         }
     }
 }

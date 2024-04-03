@@ -67,23 +67,7 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
-        protected virtual Piece ChooseAPieceToMove()
-        {
-            // TODO: Pick a random piece from the possessed pieces list
-            // TODO: And try to check the better move with it
-
-            throw new NotImplementedException();
-        }
-
-        protected virtual Vector2 MoveToDo(Piece iPieceToMove)
-        {
-            // TODO: Pick a random movement according to the piece
-            // TODO: Or Air Drop if the piece is in the pile
-
-            throw new NotImplementedException();
-        }
-
-        public  float MinMax(int depth, bool maximizingPlayer)
+        public float MinMax(int depth, bool maximizingPlayer)
         {
             Debug.Log("Minmax --> depth : " + depth + " + max : " + maximizingPlayer);
 
@@ -91,7 +75,6 @@ namespace _Code._Script
 
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {
-                Debug.Log("feuille ou GameOver");
                 return _gameManager.EvaluateBoard();
             }
 

@@ -29,7 +29,7 @@ namespace _Code._Script
             set => _player = value;
         }
 
-        public void ChangePlayer(IPlayer newPlayer)
+        public void ChangePiecePlayer(IPlayer newPlayer)
         {
             _player = newPlayer;
             transform.Rotate(0, 0, 180f);
