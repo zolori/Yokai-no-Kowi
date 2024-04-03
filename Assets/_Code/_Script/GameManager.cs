@@ -138,6 +138,7 @@ namespace _Code._Script
 
         private void Play()
         {
+            KeyValuePair<Piece, Vector2> bestMove = new KeyValuePair<Piece, Vector2>();
             float bestMoveValue;
 
             if (_currPlayer.isPlaying)
@@ -147,13 +148,12 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(2, true);
-                Debug.Log("Best move value :" + bestMoveValue);
-                
-                StartCoroutine(FinishTurn());
-            }
+                bestMoveValue = ia.MinMax(3, true, ref bestMove);
+                //UndoMove(bestMove);
+                Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
 
-            Debug.Log("Sorti du play !");
+                Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value));
+            }
         }
 
         /// <summary>
@@ -270,7 +270,6 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 GameState = _currPlayer == Player1 ? 1 : -1;
             }
-
             else if (iPiece.GetComponent<KodamaSamurai>())
             {
                 var kodamaTmp = Instantiate(kodama, Vector3.zero, iPiece.transform.rotation);
@@ -339,8 +338,6 @@ namespace _Code._Script
         /// </summary>
         public IEnumerator FinishTurn()
         {
-            Debug.Log("Changement de tour");
-
             if (GameState == -1 || GameState == 0 || GameState == 1)
                 GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
 
@@ -401,36 +398,6 @@ namespace _Code._Script
         Dictionary<Piece, List<Vector2>> moves;
         private List<MoveHistory> movesHistory;
 
-        /*        /// <summary>
-                /// Return the position of the target Tile
-                /// </summary>
-                /// <param name="iPieceToMove"></param>
-                /// <param name="iVectorMovement"></param>
-                /// <returns>The reference to the tile hit by the raycast</returns>
-                private bool MoveChecker(Piece iPieceToMove, Vector2 iVectorMovement)
-                {
-                    Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
-
-                    if (iPieceToMove.Player == Player2)
-                        iVectorMovement *= -1;
-
-                    Vector2 targetPos = currPieceTile + iVectorMovement;
-
-                    RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
-
-                    foreach (RaycastHit2D hit in hits)
-                    {
-                        GameObject dropArea = hit.collider.gameObject;
-
-                        if (dropArea.GetComponent<Tile>())
-                            if (CanMoveIA(iPieceToMove, dropArea.GetComponent<Tile>()))
-                                return true;
-                    }
-
-                    return false;
-                }
-        */
-
         /// <summary>
         /// GET A REFERENCE TO THE TILE WHERE THE IA TRY TO MOVE THE PIECE
         /// </summary>
@@ -460,7 +427,7 @@ namespace _Code._Script
         private bool CanMoveIA(Piece iMyPiece, Tile iNextTile)
         {
             if (iNextTile.Piece != null)
-                if (iNextTile.Piece.Player == _currPlayer)
+                if (iNextTile.Piece.Player == iMyPiece.Player)
                     return false;
 
             Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
@@ -574,11 +541,11 @@ namespace _Code._Script
         public async Task<bool> UndoMove(KeyValuePair<Piece, Vector2> move)
         {
             MoveHistory myMoveHistory = movesHistory.Last();
-            //Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
-                      //"\n Last Move : " + myMoveHistory.move +
-                      //"\n Previous Tile : " + myMoveHistory.prevTile.transform.position + 
-                      //"\n Current Tile : " + myMoveHistory.currTile.transform.position);
-
+/*            Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
+                      "\n Last Move : " + myMoveHistory.move +
+                      "\n Previous Tile : " + myMoveHistory.prevTile.transform.position + 
+                      "\n Current Tile : " + myMoveHistory.currTile.transform.position);
+*/
             if(GameState == 1 || GameState == 0 || GameState == -1)
                 GameState = -2;
 
