@@ -32,6 +32,8 @@ namespace _Code._Script
 
         public GameObject CurrSelectedPiece { get; set; }
 
+        public KeyValuePair<Piece, Vector2> bestMove = new KeyValuePair<Piece, Vector2>();
+
         #region Player
 
         private IPlayer _currPlayer, _inactivePlayer, _player1, _player2;
@@ -137,8 +139,7 @@ namespace _Code._Script
         }
 
         private async Task<bool> Play()
-        {
-            KeyValuePair<Piece, Vector2> bestMove = new KeyValuePair<Piece, Vector2>();
+        {            
             float bestMoveValue;
 
             if (_currPlayer.isPlaying)
@@ -148,7 +149,7 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = await ia.MinMax(3, true, ref bestMove);
+                bestMoveValue = await ia.MinMax(3, true);
                 
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
 
