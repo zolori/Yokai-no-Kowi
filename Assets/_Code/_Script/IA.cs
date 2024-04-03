@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using _Code._Script.Event;
 using UnityEngine;
 
@@ -68,7 +67,7 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
-        public async Task<float> MinMax(int depth, bool maximizingPlayer)
+        public float MinMax(int depth, bool maximizingPlayer)
         {
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
             KeyValuePair<Piece, Vector2> _bestMove = GameManager.Instance.bestMove;
@@ -80,18 +79,29 @@ namespace _Code._Script
 
             if (maximizingPlayer)
             {
+<<<<<<< HEAD
+=======
+                Debug.Log("*********IA");
+>>>>>>> parent of e77495a (WIP async)
                 float maxEval = int.MinValue;
                 foreach (var moves in _gameManager.GetLegalMoves(this))
                 {
                     foreach (Vector2 move in moves.Value)
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
+<<<<<<< HEAD
                         _bestMove = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value);
                         await _gameManager.ApplyMove(mouvement, this);
                         float eval = await MinMax(depth - 1, false);
                         maxEval = Math.Max(maxEval, eval);
                         Debug.Log("MINMAX***  Piece : " + _bestMove.Key + " , déplacement : " + _bestMove.Value + ", et le coup vaut : " + eval);
                         await _gameManager.UndoMove(mouvement);
+=======
+                        _gameManager.ApplyMove(mouvement, this);
+                        float eval = MinMax(depth - 1, false);
+                        maxEval = Math.Max(maxEval, eval);
+                        _gameManager.UndoMove(mouvement);
+>>>>>>> parent of e77495a (WIP async)
                     }
                 }
                 return maxEval;
@@ -104,8 +114,13 @@ namespace _Code._Script
                     foreach(Vector2 move in moves.Value)
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
+<<<<<<< HEAD
                         await _gameManager.ApplyMove(mouvement, opponent);
                         float eval = await MinMax(depth - 1, true);
+=======
+                        _gameManager.ApplyMove(mouvement, opponent);
+                        float eval = MinMax(depth - 1, true);
+>>>>>>> parent of e77495a (WIP async)
                         minEval = Math.Min(minEval, eval);
                         await _gameManager.UndoMove(mouvement);
                     }

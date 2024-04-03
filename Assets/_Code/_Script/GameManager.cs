@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using _Code._Script.ChildPieces;
 using _Code._Script.Enums;
 using _Code._Script.Event;
@@ -479,8 +478,9 @@ namespace _Code._Script
         /// </summary>
         /// <param name="move"></param>
         /// <param name="player"></param>
-        public async Task<bool> ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
+        public void ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
         {
+
             Piece myPiece = shift.Key;
             Vector2 myMove = shift.Value;
             Tile nextTile = GetTileToMove(myPiece, myMove);
@@ -495,7 +495,7 @@ namespace _Code._Script
             };
 
             if (nextTile == null)
-                return false;
+                return;
 
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
@@ -533,15 +533,13 @@ namespace _Code._Script
             }
             else
                 SetPieceAndMoveToParent(myPiece, currTile);
-
-            return true;
         }
 
         /// <summary>
         /// Undo a move for the player on the board
         /// </summary>
         /// <param name="move"></param>
-        public async Task<bool> UndoMove(KeyValuePair<Piece, Vector2> move)
+        public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
             MoveHistory myMoveHistory = movesHistory.Last();
 /*            Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
@@ -568,7 +566,6 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
 
             movesHistory.Remove(myMoveHistory);
-            return true;
         }
 
         /// <summary>
