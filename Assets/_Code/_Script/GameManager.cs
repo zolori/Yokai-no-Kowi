@@ -234,7 +234,6 @@ namespace _Code._Script
                         else if (iMyPiece.GetComponent<Koropokkuru>())
                             GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
                 }
-
                 CheckForDraw();
                 StartCoroutine(FinishTurn());
             }
