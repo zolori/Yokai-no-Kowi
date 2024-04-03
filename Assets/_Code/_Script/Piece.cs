@@ -5,6 +5,7 @@ namespace _Code._Script
     [RequireComponent(typeof(Collider2D), typeof(DragAndDrop))]
     public abstract class Piece : MonoBehaviour
     {
+        private int _id;
         private IPlayer _player;
         private string _name;
         private Sprite _sprite;
@@ -12,17 +13,24 @@ namespace _Code._Script
 
         public float Value { get; set; }
 
-        protected Piece(IPlayer player, Tile iTileToSpawn)
+        protected Piece(IPlayer player, Tile iTileToSpawn, int iId)
         {
             _player = player;
             _ownerName = player.Name;
             GameManager.Instance.SetPieceAndMoveToParent(this, iTileToSpawn);
+            _id = iId;
         }
 
         public Vector2[] VectorMovements { get; protected set; }
 
         public bool bIsFromPile = false;
 
+        public int ID
+        {
+            get => _id;
+            set => _id = value;
+        }
+        
         public IPlayer Player
         {
             get => _player;

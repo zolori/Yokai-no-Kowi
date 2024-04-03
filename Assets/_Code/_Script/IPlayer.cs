@@ -11,8 +11,7 @@ namespace _Code._Script
         string Name { get; set; }
 
         bool BSameThreeLastMove { get; set; }
-        
-        List<Piece> PossessedPieces { get; set; }
+        Dictionary<int, Piece> PossessedPieces { get; set; }
         
         List<Vector2> LastThreeMove { get; set; }
         

@@ -11,7 +11,7 @@ namespace _Code._Script
         public int Id { get; set; }
         public string Name { get; set; }
         public bool BSameThreeLastMove { get; set; }
-        public List<Piece> PossessedPieces { get; set; }
+        public Dictionary<int, Piece> PossessedPieces { get; set; }
         public List<Vector2> LastThreeMove { get; set; }
         public GameObject[] EnemyLastLine { get; set; }
         public bool isPlaying { get; set; }
@@ -32,7 +32,7 @@ namespace _Code._Script
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             isPlaying = false;
-            PossessedPieces = new List<Piece>();
+            PossessedPieces = new Dictionary<int, Piece>{};
         }
 
         public void SetLastMovement(object receiver, EventPlayerMovement e)

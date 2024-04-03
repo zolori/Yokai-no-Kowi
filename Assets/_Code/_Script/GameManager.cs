@@ -6,7 +6,6 @@ using _Code._Script.ChildPieces;
 using _Code._Script.Enums;
 using _Code._Script.Event;
 using _Code._Script.UI;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace _Code._Script
@@ -100,6 +99,8 @@ namespace _Code._Script
                 new int[] { 11, 10, 9, 7 }
             };
 
+            int pieceID = 0;
+            
             Quaternion[] rotations = { Quaternion.identity, Quaternion.Euler(0, 0, 180) };
             IPlayer[] players = { Player1, Player2 };
 
@@ -109,11 +110,13 @@ namespace _Code._Script
                     var pieceInstance = Instantiate(pieces[pieceIndex], Vector3.zero, rotations[playerIndex]);
                     var pieceComponent = pieceInstance.GetComponent<Piece>();
                     pieceComponent.Player = players[playerIndex];
-                    players[playerIndex].PossessedPieces.Add(pieceComponent);
+                    pieceComponent.ID = pieceID;
+                    players[playerIndex].PossessedPieces.Add(pieceComponent.ID, pieceComponent);
 
                     int positionIndex = positions[playerIndex][pieceIndex];
                     SetPieceAndMoveToParent(pieceComponent, board[positionIndex].GetComponent<Tile>());
                     //SetPieceAndMoveToParent(pieceComponent, boardCopy[positionIndex].GetComponent<Tile>());
+                    pieceID++;
                 }
 
             moves = new Dictionary<Piece, List<Vector2>>();
@@ -148,7 +151,7 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(3, true, ref bestMove);
+                bestMoveValue = ia.MinMax(2, true, ref bestMove);
                 
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
 
@@ -274,21 +277,23 @@ namespace _Code._Script
                 var kodamaTmp = Instantiate(kodama, Vector3.zero, iPiece.transform.rotation);
                 kodamaTmp.transform.Rotate(0, 0, 180);
                 kodamaTmp.GetComponent<Piece>().Player = _currPlayer;
+                kodamaTmp.GetComponent<Piece>().ID = iPiece.ID;
+                iPiece.Player.PossessedPieces.Remove(iPiece.ID);
+                _currPlayer.PossessedPieces.Add(kodamaTmp.GetComponent<Piece>().ID, kodamaTmp.GetComponent<Piece>());
                 SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(),
                     ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
-                //ChangePieceFromList(kodamaTmp.GetComponent<Piece>(),iPiece.GetComponent<KodamaSamurai>());
                 Destroy(iPiece.gameObject);
             }
             else
             {
                 iPiece.bIsFromPile = true;
+                iPiece.Player.PossessedPieces.Remove(iPiece.ID);
+                _currPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
-                //ChangePieceFromList(iPiece);
             }
         }
-
         #endregion
 
         /// <summary>
@@ -316,12 +321,15 @@ namespace _Code._Script
         /// </summary>
         /// <param name="iTile"></param>
         /// <returns></returns>
-        private Piece TryTransformKodama(Kodama iKodama, Tile iTile)
+        private Piece TryTransformKodama(Kodama pKodama, Tile iTile)
         {
-            var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation);
+            var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, pKodama.transform.rotation);
             kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
+            kodamaSamuraiTmp.GetComponent<Piece>().ID = pKodama.ID;
             SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
-            Destroy(iKodama.gameObject);
+            _currPlayer.PossessedPieces.Remove(pKodama.ID);
+            _currPlayer.PossessedPieces.Add(kodamaSamuraiTmp.GetComponent<Piece>().ID, kodamaSamuraiTmp.GetComponent<Piece>());
+            Destroy(pKodama.gameObject);
 
             return kodamaSamuraiTmp.GetComponent<Piece>();
         }
@@ -453,7 +461,7 @@ namespace _Code._Script
             moves = new Dictionary<Piece, List<Vector2>>();
             List<Vector2> moveList = new List<Vector2>();
 
-            foreach (Piece piece in player.PossessedPieces)
+            foreach (Piece piece in player.PossessedPieces.Values)
             {
                 if (!piece.bIsFromPile)
                     foreach (Vector2 mouvements in piece.VectorMovements)
@@ -621,7 +629,7 @@ namespace _Code._Script
                     bool isSpecialPiece = piece is Koropokkuru || piece is Kodama;
                     positionValue = i switch
                     {
-                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 0 : 0) : (isSpecialPiece ? 9 : 6)),
+                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? 0 : (isSpecialPiece ? 9 : 6)),
                         3 or 4 or 5 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 3 : 2) : (isSpecialPiece ? 6 : 4)),
                         6 or 7 or 8 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 6 : 4) : (isSpecialPiece ? 3 : 2)),
                         9 or 10 or 11 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 9 : 6) : 0),
