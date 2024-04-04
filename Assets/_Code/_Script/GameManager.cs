@@ -100,7 +100,7 @@ namespace _Code._Script
             };
 
             int pieceID = 0;
-            
+
             Quaternion[] rotations = { Quaternion.identity, Quaternion.Euler(0, 0, 180) };
             IPlayer[] players = { Player1, Player2 };
 
@@ -141,7 +141,7 @@ namespace _Code._Script
         }
 
         private void Play()
-        {            
+        {
             float bestMoveValue;
 
             if (_currPlayer.isPlaying)
@@ -152,7 +152,7 @@ namespace _Code._Script
             if (_currPlayer is IA ia)
             {
                 bestMoveValue = ia.MinMax(2, true, ref bestMove);
-                
+
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , d�placement : " + bestMove.Value);
 
                 Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value));
@@ -289,7 +289,9 @@ namespace _Code._Script
             {
                 iPiece.bIsFromPile = true;
                 iPiece.Player.PossessedPieces.Remove(iPiece.ID);
-                _currPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
+                IPlayer otherPlayer = SwitchPlayer(iPiece.Player);
+                Debug.Log("Le " + iPiece.name + " de " + iPiece.Player.Name + " s'est fait manger.\nDonc on remove " + iPiece.name + " des possessed pieces de " + iPiece.Player.Name + " et on ajoute " + iPiece.name + " à celles de " + otherPlayer.Name + "FILSDEPUTE");
+                otherPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
             }
@@ -493,9 +495,9 @@ namespace _Code._Script
 
             MoveHistory myMoveHistory = new MoveHistory()
             {
-                piece = myPiece, 
-                move = myMove, 
-                isFromPile = myPiece.bIsFromPile, 
+                piece = myPiece,
+                move = myMove,
+                isFromPile = myPiece.bIsFromPile,
                 prevTile = currTile
             };
 
@@ -547,24 +549,26 @@ namespace _Code._Script
         public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
             MoveHistory myMoveHistory = movesHistory.Last();
-/*            Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
-                      "\n Last Move : " + myMoveHistory.move +
-                      "\n Previous Tile : " + myMoveHistory.prevTile.transform.position + 
-                      "\n Current Tile : " + myMoveHistory.currTile.transform.position);
-*/
-            if(GameState == 1 || GameState == 0 || GameState == -1)
+            Piece myPieceEaten = myMoveHistory.pieceEaten;
+            /*            Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
+                                  "\n Last Move : " + myMoveHistory.move +
+                                  "\n Previous Tile : " + myMoveHistory.prevTile.transform.position + 
+                                  "\n Current Tile : " + myMoveHistory.currTile.transform.position);
+            */
+            if (GameState == 1 || GameState == 0 || GameState == -1)
                 GameState = -2;
 
             if (!myMoveHistory.isFromPile)
             {
                 OnTilePieceChangeEventHandler?.Invoke(myMoveHistory.piece.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
-                if (myMoveHistory.pieceEaten != null)
+                if (myPieceEaten != null)
                 {
-                    OnTilePieceChangeEventHandler?.Invoke(myMoveHistory.pieceEaten.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
-                    myMoveHistory.pieceEaten.ChangePiecePlayer(SwitchPlayer(myMoveHistory.pieceEaten.Player));
-                    SetPieceAndMoveToParent(myMoveHistory.pieceEaten, myMoveHistory.currTile);
-                    myMoveHistory.pieceEaten.bIsFromPile = false;
+                    OnTilePieceChangeEventHandler?.Invoke(myPieceEaten.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
+                    myPieceEaten.Player.PossessedPieces.Remove(myPieceEaten.ID);
+                    myPieceEaten.ChangePiecePlayer(SwitchPlayer(myPieceEaten.Player));
+                    SetPieceAndMoveToParent(myPieceEaten, myMoveHistory.currTile);
+                    myPieceEaten.bIsFromPile = false;
                 }
             }
             else

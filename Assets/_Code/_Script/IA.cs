@@ -88,7 +88,7 @@ namespace _Code._Script
                         _gameManager.ApplyMove(mouvement, this);
                         float eval = MinMax(depth - 1, false, ref bestMove);
                         maxEval = Math.Max(maxEval, eval);
-                        Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
+                        //Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
                         _gameManager.UndoMove(mouvement);
                     }
                 }
