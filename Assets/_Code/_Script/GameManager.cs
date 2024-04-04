@@ -149,7 +149,7 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = await ia.MinMax(3, true);
+                bestMoveValue = await ia.MinMax(2, true);
                 
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
 
