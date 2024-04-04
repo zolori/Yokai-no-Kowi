@@ -2,12 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using _Code._Script.ChildPieces;
 using _Code._Script.Enums;
 using _Code._Script.Event;
 using _Code._Script.UI;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace _Code._Script
@@ -72,7 +70,7 @@ namespace _Code._Script
             Time.timeScale = 1;
             uiManagerReference.InitUI();
 
-            // Simplification de la destruction des pièces existantes
+            // Simplification de la destruction des piï¿½ces existantes
             DestroyExistingPieces(board);
             DestroyExistingPieces(_pileJ1);
             DestroyExistingPieces(_pileJ2);
@@ -95,12 +93,14 @@ namespace _Code._Script
 
             GameObject[] pieces = { kitsune, koropokkuru, tanuki, kodama };
 
-            // Positions initiales pièces joueurs
+            // Positions initiales piï¿½ces joueurs
             int[][] positions = {
                 new int[] { 0, 1, 2, 4 },
                 new int[] { 11, 10, 9, 7 }
             };
 
+            int pieceID = 0;
+            
             Quaternion[] rotations = { Quaternion.identity, Quaternion.Euler(0, 0, 180) };
             IPlayer[] players = { Player1, Player2 };
 
@@ -110,11 +110,13 @@ namespace _Code._Script
                     var pieceInstance = Instantiate(pieces[pieceIndex], Vector3.zero, rotations[playerIndex]);
                     var pieceComponent = pieceInstance.GetComponent<Piece>();
                     pieceComponent.Player = players[playerIndex];
-                    players[playerIndex].PossessedPieces.Add(pieceComponent);
+                    pieceComponent.ID = pieceID;
+                    players[playerIndex].PossessedPieces.Add(pieceComponent.ID, pieceComponent);
 
                     int positionIndex = positions[playerIndex][pieceIndex];
                     SetPieceAndMoveToParent(pieceComponent, board[positionIndex].GetComponent<Tile>());
                     //SetPieceAndMoveToParent(pieceComponent, boardCopy[positionIndex].GetComponent<Tile>());
+                    pieceID++;
                 }
 
             moves = new Dictionary<Piece, List<Vector2>>();
@@ -138,25 +140,23 @@ namespace _Code._Script
             }
         }
 
-        private async Task<bool> Play()
+        private void Play()
         {            
             float bestMoveValue;
 
             if (_currPlayer.isPlaying)
-                return false;
+                return;
 
             _currPlayer.isPlaying = true;
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = await ia.MinMax(2, true);
+                bestMoveValue = ia.MinMax(2, true, ref bestMove);
                 
-                Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , déplacement : " + bestMove.Value);
+                Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , dï¿½placement : " + bestMove.Value);
 
                 Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value));
             }
-
-            return true;
         }
 
         /// <summary>
@@ -235,7 +235,6 @@ namespace _Code._Script
                         else if (iMyPiece.GetComponent<Koropokkuru>())
                             GameOver(new EventGameOver(EGameOverState.Victory, _currPlayer.Name));
                 }
-
                 CheckForDraw();
                 StartCoroutine(FinishTurn());
             }
@@ -278,21 +277,23 @@ namespace _Code._Script
                 var kodamaTmp = Instantiate(kodama, Vector3.zero, iPiece.transform.rotation);
                 kodamaTmp.transform.Rotate(0, 0, 180);
                 kodamaTmp.GetComponent<Piece>().Player = _currPlayer;
+                kodamaTmp.GetComponent<Piece>().ID = iPiece.ID;
+                iPiece.Player.PossessedPieces.Remove(iPiece.ID);
+                _currPlayer.PossessedPieces.Add(kodamaTmp.GetComponent<Piece>().ID, kodamaTmp.GetComponent<Piece>());
                 SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(),
                     ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
-                //ChangePieceFromList(kodamaTmp.GetComponent<Piece>(),iPiece.GetComponent<KodamaSamurai>());
                 Destroy(iPiece.gameObject);
             }
             else
             {
                 iPiece.bIsFromPile = true;
+                iPiece.Player.PossessedPieces.Remove(iPiece.ID);
+                _currPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
-                //ChangePieceFromList(iPiece);
             }
         }
-
         #endregion
 
         /// <summary>
@@ -320,12 +321,15 @@ namespace _Code._Script
         /// </summary>
         /// <param name="iTile"></param>
         /// <returns></returns>
-        private Piece TryTransformKodama(Kodama iKodama, Tile iTile)
+        private Piece TryTransformKodama(Kodama pKodama, Tile iTile)
         {
-            var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, iKodama.transform.rotation);
+            var kodamaSamuraiTmp = Instantiate(kodamaSamurai, Vector3.zero, pKodama.transform.rotation);
             kodamaSamuraiTmp.GetComponent<Piece>().Player = _currPlayer;
+            kodamaSamuraiTmp.GetComponent<Piece>().ID = pKodama.ID;
             SetPieceAndMoveToParent(kodamaSamuraiTmp.GetComponent<Piece>(), iTile);
-            Destroy(iKodama.gameObject);
+            _currPlayer.PossessedPieces.Remove(pKodama.ID);
+            _currPlayer.PossessedPieces.Add(kodamaSamuraiTmp.GetComponent<Piece>().ID, kodamaSamuraiTmp.GetComponent<Piece>());
+            Destroy(pKodama.gameObject);
 
             return kodamaSamuraiTmp.GetComponent<Piece>();
         }
@@ -385,7 +389,7 @@ namespace _Code._Script
         #region *** IA ***
 
         // A faire : finir applyMove() qui est une simulation
-        // Opti : faire en sorte de garder les moves des pieces qui n'ont pas été bougées pour chaque joueur, pour ne pas avoir à recalculer à chaque fois.
+        // Opti : faire en sorte de garder les moves des pieces qui n'ont pas ï¿½tï¿½ bougï¿½es pour chaque joueur, pour ne pas avoir ï¿½ recalculer ï¿½ chaque fois.
 
         public struct MoveHistory
         {
@@ -457,7 +461,7 @@ namespace _Code._Script
             moves = new Dictionary<Piece, List<Vector2>>();
             List<Vector2> moveList = new List<Vector2>();
 
-            foreach (Piece piece in player.PossessedPieces)
+            foreach (Piece piece in player.PossessedPieces.Values)
             {
                 if (!piece.bIsFromPile)
                     foreach (Vector2 mouvements in piece.VectorMovements)
@@ -479,8 +483,9 @@ namespace _Code._Script
         /// </summary>
         /// <param name="move"></param>
         /// <param name="player"></param>
-        public async Task<bool> ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
+        public void ApplyMove(KeyValuePair<Piece, Vector2> shift, IPlayer player)
         {
+
             Piece myPiece = shift.Key;
             Vector2 myMove = shift.Value;
             Tile nextTile = GetTileToMove(myPiece, myMove);
@@ -495,7 +500,7 @@ namespace _Code._Script
             };
 
             if (nextTile == null)
-                return false;
+                return;
 
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
@@ -533,15 +538,13 @@ namespace _Code._Script
             }
             else
                 SetPieceAndMoveToParent(myPiece, currTile);
-
-            return true;
         }
 
         /// <summary>
         /// Undo a move for the player on the board
         /// </summary>
         /// <param name="move"></param>
-        public async Task<bool> UndoMove(KeyValuePair<Piece, Vector2> move)
+        public void UndoMove(KeyValuePair<Piece, Vector2> move)
         {
             MoveHistory myMoveHistory = movesHistory.Last();
 /*            Debug.Log("=======History Move Info : \n Piece :" + myMoveHistory.piece +
@@ -568,7 +571,6 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(myMoveHistory.piece, myMoveHistory.prevTile);
 
             movesHistory.Remove(myMoveHistory);
-            return true;
         }
 
         /// <summary>
@@ -584,12 +586,12 @@ namespace _Code._Script
         /// Evaluate the board from the perspective of player 1
         /// CRUCIAL FOR THE ENTIER ALGORITHM
         /// 
-        /// Utilisation de la boucle for au lieu de foreach car l'ordre de parcourt du tableau est important, et j'ai peur qu'à grande vitesse le tableau ne soit plus lu dans l'ordre.
+        /// Utilisation de la boucle for au lieu de foreach car l'ordre de parcourt du tableau est important, et j'ai peur qu'ï¿½ grande vitesse le tableau ne soit plus lu dans l'ordre.
         /// 
         /// Evaluation :
-        /// V Type de pièce (kuro : 10000 + augmente en fonction de son avancée / kodama augmente en fonction de son avancée / kodama samourai : 10 / autre : 5)
-        /// V Avancée des pièces vers le camp de l'aversaire
-        /// - Nombre de pièces, de case/pièce couverte, en danger/mangeable au prochain coup 
+        /// V Type de piï¿½ce (kuro : 10000 + augmente en fonction de son avancï¿½e / kodama augmente en fonction de son avancï¿½e / kodama samourai : 10 / autre : 5)
+        /// V Avancï¿½e des piï¿½ces vers le camp de l'aversaire
+        /// - Nombre de piï¿½ces, de case/piï¿½ce couverte, en danger/mangeable au prochain coup 
         /// 
         /// </summary>
         /// <returns></returns>
@@ -627,7 +629,7 @@ namespace _Code._Script
                     bool isSpecialPiece = piece is Koropokkuru || piece is Kodama;
                     positionValue = i switch
                     {
-                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 0 : 0) : (isSpecialPiece ? 9 : 6)),
+                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? 0 : (isSpecialPiece ? 9 : 6)),
                         3 or 4 or 5 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 3 : 2) : (isSpecialPiece ? 6 : 4)),
                         6 or 7 or 8 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 6 : 4) : (isSpecialPiece ? 3 : 2)),
                         9 or 10 or 11 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 9 : 6) : 0),

@@ -11,7 +11,7 @@ namespace _Code._Script
         public int Id { get; set; }
         public string Name { get; set; }
         public bool BSameThreeLastMove { get; set; }
-        public List<Piece> PossessedPieces { get; set; }
+        public Dictionary<int, Piece> PossessedPieces { get; set; }
         public List<Vector2> LastThreeMove { get; set; }
         public GameObject[] EnemyLastLine { get; set; }
         public bool isPlaying { get; set; }
@@ -31,7 +31,7 @@ namespace _Code._Script
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             BSameThreeLastMove = false;
             isPlaying = false;
-            PossessedPieces = new List<Piece>();
+            PossessedPieces = new Dictionary<int, Piece>{};
         }
 
         /// <summary>

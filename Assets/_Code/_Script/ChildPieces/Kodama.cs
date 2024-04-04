@@ -11,7 +11,7 @@ namespace _Code._Script.ChildPieces
                 {new Vector2(0, 1)};
         }
 
-        public Kodama(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        public Kodama(IPlayer player, Tile iTileToSpawn, int iId) : base(player, iTileToSpawn, iId)
         {
             Value = 2;
         }

@@ -11,7 +11,7 @@ namespace _Code._Script.ChildPieces
         }
 
 
-        public Kitsune(IPlayer player, Tile iTileToSpawn) : base(player, iTileToSpawn)
+        public Kitsune(IPlayer player, Tile iTileToSpawn, int iId) : base(player, iTileToSpawn, iId)
         {
             Value = 5;
         }

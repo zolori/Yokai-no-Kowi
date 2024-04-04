@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using _Code._Script.Event;
 using UnityEngine;
 
@@ -12,7 +11,7 @@ namespace _Code._Script
         public int Id { get; set; }
         public string Name { get; set; }
         public bool BSameThreeLastMove { get; set; }
-        public List<Piece> PossessedPieces { get; set; }
+        public Dictionary<int, Piece> PossessedPieces { get; set; }
         public List<Vector2> LastThreeMove { get; set; }
         public GameObject[] EnemyLastLine { get; set; }
         public bool isPlaying { get; set; }
@@ -33,7 +32,7 @@ namespace _Code._Script
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             isPlaying = false;
-            PossessedPieces = new List<Piece>();
+            PossessedPieces = new Dictionary<int, Piece>{};
         }
 
         public void SetLastMovement(object receiver, EventPlayerMovement e)
@@ -68,10 +67,9 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
-        public async Task<float> MinMax(int depth, bool maximizingPlayer)
+        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, Vector2> bestMove)
         {
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
-            KeyValuePair<Piece, Vector2> _bestMove = GameManager.Instance.bestMove;
 
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {
@@ -86,12 +84,12 @@ namespace _Code._Script
                     foreach (Vector2 move in moves.Value)
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
-                        _bestMove = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value);
-                        await _gameManager.ApplyMove(mouvement, this);
-                        float eval = await MinMax(depth - 1, false);
+                        bestMove = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value);
+                        _gameManager.ApplyMove(mouvement, this);
+                        float eval = MinMax(depth - 1, false, ref bestMove);
                         maxEval = Math.Max(maxEval, eval);
-                        Debug.Log("MINMAX***  Piece : " + _bestMove.Key + " , déplacement : " + _bestMove.Value + ", et le coup vaut : " + eval);
-                        await _gameManager.UndoMove(mouvement);
+                        Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , dÃ©placement : " + bestMove.Value + ", et le coup vaut : " + eval);
+                        _gameManager.UndoMove(mouvement);
                     }
                 }
                 return maxEval;
@@ -104,10 +102,10 @@ namespace _Code._Script
                     foreach(Vector2 move in moves.Value)
                     {
                         KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
-                        await _gameManager.ApplyMove(mouvement, opponent);
-                        float eval = await MinMax(depth - 1, true);
+                        _gameManager.ApplyMove(mouvement, opponent);
+                        float eval = MinMax(depth - 1, true, ref bestMove);
                         minEval = Math.Min(minEval, eval);
-                        await _gameManager.UndoMove(mouvement);
+                        _gameManager.UndoMove(mouvement);
                     }
                 }
                 return minEval;
