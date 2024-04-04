@@ -151,7 +151,7 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(2, true, ref bestMove);
+                bestMoveValue = ia.MinMax(3, true, ref bestMove);
 
                 Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , d�placement : " + bestMove.Value);
 
@@ -416,9 +416,9 @@ namespace _Code._Script
         private Tile GetTileToMove(Piece iPieceToMove, Vector2 iVectorMovement)
         {
             Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
-            if (iPieceToMove.Player == Player2)
+/*            if (iPieceToMove.Player == Player2)
                 iVectorMovement *= -1;
-
+*/
             Vector2 targetPos = currPieceTile + iVectorMovement;
             RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
 
@@ -441,9 +441,9 @@ namespace _Code._Script
 
             Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-            if (iMyPiece.Player == Player2)
+/*            if (iMyPiece.Player == Player2)
                 currVectorMovement *= -1;
-
+*/
             foreach (var movement in iMyPiece.VectorMovements)
                 if (currVectorMovement == movement)
                     return true;
