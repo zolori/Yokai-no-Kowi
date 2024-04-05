@@ -32,7 +32,7 @@ namespace _Code._Script
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             isPlaying = false;
-            PossessedPieces = new Dictionary<int, Piece>{};
+            PossessedPieces = new Dictionary<int, Piece> { };
         }
 
         public void SetLastMovement(object receiver, EventPlayerMovement e)
@@ -67,31 +67,39 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
-        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, Vector2> bestMove)
+        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove, ref int node)
         {
+            node++;
             IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
 
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {
+                node--;
                 return _gameManager.EvaluateBoard();
             }
 
             if (maximizingPlayer)
             {
                 float maxEval = int.MinValue;
-                foreach (var moves in _gameManager.GetLegalMoves(this))
+
+                Dictionary<Piece, List<Vector2>> clearedLegalMoves = ClearGetLegalMoves(_gameManager.GetLegalMoves(this));
+                foreach (var moves in clearedLegalMoves)
                 {
                     foreach (Vector2 move in moves.Value)
                     {
-                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
-                        bestMove = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value);
-                        _gameManager.ApplyMove(mouvement, this);
-                        float eval = MinMax(depth - 1, false, ref bestMove);
+                        KeyValuePair<Vector2, int> pair = new KeyValuePair<Vector2, int>(move, node);
+                        KeyValuePair<Piece, KeyValuePair<Vector2, int>> mouvement = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(moves.Key, pair);
+                        KeyValuePair<Piece, Vector2> truc = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value.Key);
+
+                        _gameManager.ApplyMove(truc, this);
+                        float eval = MinMax(depth - 1, false, ref bestMove, ref node);
                         maxEval = Math.Max(maxEval, eval);
-                        Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
-                        _gameManager.UndoMove(mouvement);
+                        bestMove = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(mouvement.Key, mouvement.Value);
+                        //Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
+                        _gameManager.UndoMove(truc);
                     }
                 }
+                node--;
                 return maxEval;
             }
             else
@@ -99,17 +107,46 @@ namespace _Code._Script
                 float minEval = int.MaxValue;
                 foreach (var moves in _gameManager.GetLegalMoves(opponent))
                 {
-                    foreach(Vector2 move in moves.Value)
+                    foreach (Vector2 move in moves.Value)
                     {
-                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
-                        _gameManager.ApplyMove(mouvement, opponent);
-                        float eval = MinMax(depth - 1, true, ref bestMove);
+                        KeyValuePair<Vector2, int> pair = new KeyValuePair<Vector2, int>(move, node);
+                        KeyValuePair<Piece, KeyValuePair<Vector2, int>> mouvement = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(moves.Key, pair);
+                        KeyValuePair<Piece, Vector2> truc = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value.Key);
+
+                        _gameManager.ApplyMove(truc, opponent);
+                        float eval = MinMax(depth - 1, true, ref bestMove, ref node);
                         minEval = Math.Min(minEval, eval);
-                        _gameManager.UndoMove(mouvement);
+                        _gameManager.UndoMove(truc);
                     }
                 }
+                node--;
                 return minEval;
             }
+        }
+
+        private Dictionary<Piece, List<Vector2>> ClearGetLegalMoves(Dictionary<Piece, List<Vector2>> moves)
+        {
+            Dictionary<Piece, List<Vector2>> newLegalMoves = new Dictionary<Piece, List<Vector2>>();
+
+            foreach (var move in moves)
+            {
+                if (move.Key == null)
+                    continue;
+
+                List<Vector2> tmp = new List<Vector2>();
+                foreach (var mouvement in move.Value)
+                {
+                    Tile nextTile = _gameManager.GetTileToMove(move.Key, mouvement);
+                    var t = nextTile.Position;
+                    if (!(t.x < 0 || t.x > 2 || t.y < 0 || t.y > 3))
+                        tmp.Add(mouvement);
+                    else Debug.Log("NOPE");
+                }
+                if (tmp.Count > 0)
+                    newLegalMoves.Add(move.Key, tmp);
+            }
+
+            return newLegalMoves;
         }
     }
 }

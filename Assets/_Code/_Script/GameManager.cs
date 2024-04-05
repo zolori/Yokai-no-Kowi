@@ -30,7 +30,8 @@ namespace _Code._Script
 
         public GameObject CurrSelectedPiece { get; set; }
 
-        public KeyValuePair<Piece, Vector2> bestMove = new KeyValuePair<Piece, Vector2>();
+        public KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>();
+        int node;
 
         #region Player
 
@@ -143,6 +144,7 @@ namespace _Code._Script
         private void Play()
         {
             float bestMoveValue;
+            node = 0;
 
             if (_currPlayer.isPlaying)
                 return;
@@ -151,11 +153,10 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(3, true, ref bestMove);
-
-                Debug.Log("Best move value :" + bestMoveValue + " , piece : " + bestMove.Key + " , d�placement : " + bestMove.Value);
-
-                Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value));
+                bestMoveValue = ia.MinMax(5, true, ref bestMove, ref node);
+                Debug.Log($"Best move value : {bestMoveValue}, piece : {bestMove.Key}, deplacement : {bestMove.Value},  node :  {node}, " +
+                    $"position currente : {bestMove.Key.GetComponentInParent<Transform>().position} position future : {GetTileToMove(bestMove.Key, bestMove.Value.Key).Position}");
+                Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value.Key));
             }
         }
 
@@ -180,13 +181,16 @@ namespace _Code._Script
             if (iMyPiece.Player == _currPlayer)
             {
                 if (iNextTile.Piece != null)
-                    if (iNextTile.Piece.Player == _currPlayer) return false;
+                    if (iNextTile.Piece.Player == _currPlayer)
+                        return false;
 
                 Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
-                if (iMyPiece.Player == Player2) currVectorMovement *= -1;
-
+                /*                if (iMyPiece.Player == Player2) 
+                                    currVectorMovement *= -1;
+                */
                 foreach (var movement in iMyPiece.VectorMovements)
-                    if (currVectorMovement == movement) return true;
+                    if (currVectorMovement == movement)
+                        return true;
             }
             return false;
         }
@@ -220,9 +224,9 @@ namespace _Code._Script
 
                 Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-                if (iMyPiece.Player == Player2)
-                    currVectorMovement *= -1;
-
+                /*                if (iMyPiece.Player == Player2)
+                                    currVectorMovement *= -1;
+                */
                 OnPieceMovedEventHandler?.Invoke(iMyPiece.Player, new EventPlayerMovement(currVectorMovement));
                 OnTilePieceChangeEventHandler?.Invoke(iMyPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
                 SetPieceAndMoveToParent(iMyPiece, iNextTile);
@@ -283,6 +287,7 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(),
                     ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
+                iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 Destroy(iPiece.gameObject);
             }
             else
@@ -290,7 +295,7 @@ namespace _Code._Script
                 iPiece.bIsFromPile = true;
                 iPiece.Player.PossessedPieces.Remove(iPiece.ID);
                 IPlayer otherPlayer = SwitchPlayer(iPiece.Player);
-                Debug.Log("Le " + iPiece.name + " de " + iPiece.Player.Name + " s'est fait manger.\nDonc on remove " + iPiece.name + " des possessed pieces de " + iPiece.Player.Name + " et on ajoute " + iPiece.name + " à celles de " + otherPlayer.Name + "FILSDEPUTE");
+                //Debug.Log("Le " + iPiece.name + " de " + iPiece.Player.Name + " s'est fait manger.\nDonc on remove " + iPiece.name + " des possessed pieces de " + iPiece.Player.Name + " et on ajoute " + iPiece.name + " à celles de " + otherPlayer.Name);
                 otherPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? _pileJ1 : _pileJ2));
@@ -413,12 +418,12 @@ namespace _Code._Script
         /// <param name="iPieceToMove"></param>
         /// <param name="iVectorMovement"></param>
         /// <returns></returns>
-        private Tile GetTileToMove(Piece iPieceToMove, Vector2 iVectorMovement)
+        public Tile GetTileToMove(Piece iPieceToMove, Vector2 iVectorMovement)
         {
             Vector2 currPieceTile = iPieceToMove.GetComponentInParent<Transform>().position;
-/*            if (iPieceToMove.Player == Player2)
-                iVectorMovement *= -1;
-*/
+            /*            if (iPieceToMove.Player == Player2)
+                            iVectorMovement *= -1;
+            */
             Vector2 targetPos = currPieceTile + iVectorMovement;
             RaycastHit2D[] hits = Physics2D.RaycastAll(targetPos, Vector2.zero);
 
@@ -435,18 +440,31 @@ namespace _Code._Script
 
         private bool CanMoveIA(Piece iMyPiece, Tile iNextTile)
         {
+            if (iMyPiece is Koropokkuru)
+            {
+
+            }
+
+            if (iNextTile == null)
+                return false;
+
             if (iNextTile.Piece != null)
                 if (iNextTile.Piece.Player == iMyPiece.Player)
                     return false;
 
             Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
-/*            if (iMyPiece.Player == Player2)
-                currVectorMovement *= -1;
-*/
+            /*            if (iMyPiece.Player == Player2)
+                            currVectorMovement *= -1;
+            */
             foreach (var movement in iMyPiece.VectorMovements)
                 if (currVectorMovement == movement)
+                {
+                    Vector3 t = iMyPiece.GetComponentInParent<Tile>().Position + currVectorMovement;
+                    if (t.x < 0 || t.x > 2 || t.y < 0 || t.y > 3)
+                        return false;
                     return true;
+                }
 
             return false;
         }

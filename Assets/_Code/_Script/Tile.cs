@@ -7,7 +7,7 @@ namespace _Code._Script
     {
         [SerializeField] private Color baseColor, greenHoveringColor, redHoveringColor, originLocationColor;
         public bool bisPile;
-        private Vector2 Position { get; set; }
+        public Vector2 Position { get; private set; }
 
         public Piece Piece { get; set; }
 
