@@ -25,6 +25,9 @@ namespace _Code._Script
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
 
         [SerializeField] private int GameMode { get; set; }
+        [Range(1f, 10f)]
+        [SerializeField] private int depth = 4;
+
 
         [SerializeField] private UIManager uiManagerReference;
 
@@ -153,9 +156,10 @@ namespace _Code._Script
 
             if (_currPlayer is IA ia)
             {
-                bestMoveValue = ia.MinMax(5, true, ref bestMove, ref node);
-                Debug.Log($"Best move value : {bestMoveValue}, piece : {bestMove.Key}, deplacement : {bestMove.Value},  node :  {node}, " +
-                    $"position currente : {bestMove.Key.GetComponentInParent<Transform>().position} position future : {GetTileToMove(bestMove.Key, bestMove.Value.Key).Position}");
+                bestMoveValue = ia.MinMax(depth, true, ref bestMove, ref node);
+                /*                Debug.Log($"Best move value : {bestMoveValue}, piece : {bestMove.Key}, deplacement : {bestMove.Value},  node :  {node}, " +
+                                    $"position currente : {bestMove.Key.GetComponentInParent<Transform>().position} position future : {GetTileToMove(bestMove.Key, bestMove.Value.Key).Position}");
+                */
                 Move(bestMove.Key, GetTileToMove(bestMove.Key, bestMove.Value.Key));
             }
         }
@@ -622,20 +626,19 @@ namespace _Code._Script
             float mark = 0;
             for (int i = 0; i < board.Length; i++)
             {
-                Tile tile = board[i].GetComponent<Tile>();
-                Piece piece = tile.Piece;
+                Tile currentTile = board[i].GetComponent<Tile>();
+                Piece currentPiece = currentTile.Piece;
+                List<int> closeBoardCases = new List<int>();
 
-                if (piece == null)
+                if (currentPiece == null)
                     continue;
 
-                float pieceValue = piece.Value;
+                float pieceValue = currentPiece.Value;
 
-                mark += pieceValue;
-
-                float markAdjustment = piece.Player == _currPlayer ? 1 : -1;
+                float markAdjustment = currentPiece.Player == _currPlayer ? 1 : -1;
                 float positionValue;
 
-                if (piece is KodamaSamurai)
+                if (currentPiece is KodamaSamurai)
                 {
                     positionValue = i switch
                     {
@@ -648,7 +651,7 @@ namespace _Code._Script
                 }
                 else // Covers Koropokkuru, Kodama, and the orther pieces :DDD
                 {
-                    bool isSpecialPiece = piece is Koropokkuru || piece is Kodama;
+                    bool isSpecialPiece = currentPiece is Koropokkuru || currentPiece is Kodama;
                     positionValue = i switch
                     {
                         0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? 0 : (isSpecialPiece ? 9 : 6)),
@@ -657,6 +660,29 @@ namespace _Code._Script
                         9 or 10 or 11 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 9 : 6) : 0),
                         _ => 0
                     };
+                }
+
+                if (currentPiece is Koropokkuru)
+                {
+                    closeBoardCases = getCloseCaseNumber(i);
+
+                    foreach (int c in closeBoardCases)
+                    {
+                        GameObject obj = board[c];
+                        Tile tileAdj = obj.GetComponent<Tile>();
+                        Piece pieceAdj = tileAdj.Piece;
+
+                        if (pieceAdj == null)
+                            continue;
+
+                        foreach (Vector2 mouvements in pieceAdj.VectorMovements)
+                        {
+                            Tile targetTile = GetTileToMove(pieceAdj, mouvements);
+                            if (targetTile != null && currentTile == targetTile)
+                                if (CanMoveIA(pieceAdj, targetTile))
+                                    positionValue += currentPiece.Player == _currPlayer ? -1000 : 1000;
+                        }
+                    }
                 }
 
                 mark += markAdjustment * positionValue;
@@ -684,6 +710,46 @@ namespace _Code._Script
         public IPlayer SwitchPlayer(IPlayer pPlayer)
         {
             return pPlayer == Player1 ? Player2 : Player1;
+        }
+
+        private List<int> getCloseCaseNumber(int i)
+        {
+            List<int> nearPieces = new List<int>();
+            if (i == 1 || i == 4 || i == 7)
+            {
+                nearPieces.AddRange(new[] { i + 1, i + 2, i + 3, i + 4 });
+            }
+            else if (i == 0 || i == 3 || i == 6)
+            {
+                nearPieces.AddRange(new[] { i + 1, i + 3, i + 4 });
+            }
+            else if (i == 2 || i == 5 || i == 8)
+            {
+                nearPieces.AddRange(new[] { i + 2, i + 3 });
+            }
+            else if (i == 9 || i == 10)
+            {
+                nearPieces.Add(i + 1);
+            }
+
+            if (i == 4 || i == 7 || i == 10)
+            {
+                nearPieces.AddRange(new[] { i - 1, i - 2, i - 3, i - 4 });
+            }
+            else if (i == 5 || i == 8 || i == 11)
+            {
+                nearPieces.AddRange(new[] { i - 1, i - 3, i - 4 });
+            }
+            else if (i == 3 || i == 6 || i == 9)
+            {
+                nearPieces.AddRange(new[] { i - 2, i - 3 });
+            }
+            else if (i == 1 || i == 2)
+            {
+                nearPieces.Add(i - 1);
+            }
+
+            return nearPieces;
         }
     }
 }

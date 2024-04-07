@@ -8,12 +8,12 @@ namespace _Code._Script.ChildPieces
         void Start()
         {
             VectorMovements = new[] { new Vector2(-1, 1), new Vector2(1, 1), new Vector2(-1, -1), new Vector2(1, -1) };
+            Value = 5;
         }
 
 
         public Kitsune(IPlayer player, Tile iTileToSpawn, int iId) : base(player, iTileToSpawn, iId)
         {
-            Value = 5;
         }
     }
 }

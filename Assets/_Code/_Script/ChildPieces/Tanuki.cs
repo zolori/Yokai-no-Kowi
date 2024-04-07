@@ -7,14 +7,12 @@ namespace _Code._Script.ChildPieces
         // Start is called before the first frame update
         void Start()
         {
-            VectorMovements = new[]
-            {new Vector2(0, 1), new Vector2(-1, 0),
-                new Vector2(1, 0), new Vector2(0, -1)};
+            VectorMovements = new[] {new Vector2(0, 1), new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1)};
+            Value = 5;
         }
 
         public Tanuki(IPlayer player, Tile iTileToSpawn, int iId) : base(player, iTileToSpawn, iId)
         {
-            Value = 5;
         }
     }
 }
