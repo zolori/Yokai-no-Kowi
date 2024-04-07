@@ -143,9 +143,9 @@ namespace _Code._Script
             foreach (var tile in tiles)
             {
                 var tileComponent = tile.GetComponent<Tile>();
-                if (tileComponent.Piece)
+                if (tileComponent.GetPieceOnIt())
                 {
-                    Destroy(tileComponent.Piece.gameObject);
+                    Destroy(tileComponent.GetPieceOnIt().gameObject);
                 }
             }
         }
@@ -190,8 +190,8 @@ namespace _Code._Script
         {
             if (iMyPiece.Player == _currPlayer)
             {
-                if (iNextTile.Piece != null)
-                    if (iNextTile.Piece.Player == _currPlayer)
+                if (iNextTile.GetPieceOnIt())
+                    if (iNextTile.GetPieceOnIt().Player == _currPlayer)
                         return false;
 
                 Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
@@ -214,7 +214,7 @@ namespace _Code._Script
         public bool CanAirDrop(Piece iMyPiece, Tile iNextTile)
         {
             if (iMyPiece.Player == _currPlayer)
-                return iMyPiece.bIsFromPile && iNextTile.Piece == null;
+                return iMyPiece.bIsFromPile && !iNextTile.GetPieceOnIt();
             return false;
         }
 
@@ -228,9 +228,9 @@ namespace _Code._Script
             // For classic move
             if (CanMove(iMyPiece, iNextTile) && !iMyPiece.bIsFromPile)
             {
-                if (iNextTile.Piece != null)
-                    if (iNextTile.Piece.Player.Name != _currPlayer.Name)
-                        Eat(iNextTile.Piece);
+                if (iNextTile.GetPieceOnIt())
+                    if (iNextTile.GetPieceOnIt().Player.Name != _currPlayer.Name)
+                        Eat(iNextTile.GetPieceOnIt());
 
                 Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
 
@@ -267,7 +267,7 @@ namespace _Code._Script
         /// <summary>
         /// TO PLACE A PIECE TAKEN FROM THE PLAYER'S PILE
         /// </summary>
-        public void AirDrop(Piece iPiece)
+        private void AirDrop(Piece iPiece)
         {
             OnTilePieceChangeEventHandler?.Invoke(iPiece.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
             iPiece.bIsFromPile = false;
@@ -277,7 +277,7 @@ namespace _Code._Script
         /// TO ADD THE CURRENT PIECE ON THE TILE INTO THE PLAYER'S PILE
         /// </summary>
         /// <param name="iPiece"></param>
-        public void Eat(Piece iPiece)
+        private void Eat(Piece iPiece)
         {
             if (iPiece.GetComponent<Koropokkuru>())
             {
@@ -326,7 +326,7 @@ namespace _Code._Script
             {
                 t = tile.GetComponentInParent<Tile>();
 
-                if (t.Piece == null)
+                if (!t.GetPieceOnIt())
                     return t;
             }
 
@@ -409,7 +409,7 @@ namespace _Code._Script
         // A faire : finir applyMove() qui est une simulation
         // Opti : faire en sorte de garder les moves des pieces qui n'ont pas �t� boug�es pour chaque joueur, pour ne pas avoir � recalculer � chaque fois.
 
-        public struct MoveHistory
+        private struct MoveHistory
         {
             public Piece Piece { get; set; }
             public Vector2 Move { get; set; }
@@ -459,8 +459,8 @@ namespace _Code._Script
             if (iNextTile == null)
                 return false;
 
-            if (iNextTile.Piece != null)
-                if (iNextTile.Piece.Player == iMyPiece.Player)
+            if (iNextTile.GetPieceOnIt())
+                if (iNextTile.GetPieceOnIt().Player == iMyPiece.Player)
                     return false;
 
             Vector2 currVectorMovement = CalculateVectorDirection(iMyPiece.GetComponentInParent<Tile>().transform, iNextTile.transform);
@@ -535,11 +535,11 @@ namespace _Code._Script
 
             if (!myPiece.bIsFromPile && CanMoveIA(myPiece, nextTile))
             {
-                if (nextTile.Piece != null)
-                    if (nextTile.Piece.Player != player)
+                if (nextTile.GetPieceOnIt())
+                    if (nextTile.GetPieceOnIt().Player != player)
                     {
-                        myMoveHistory.PieceEaten = nextTile.Piece;
-                        Eat(nextTile.Piece);
+                        myMoveHistory.PieceEaten = nextTile.GetPieceOnIt();
+                        Eat(nextTile.GetPieceOnIt());
                     }
 
                 Vector2 currVectorMovement = CalculateVectorDirection(myPiece.GetComponentInParent<Tile>().transform, nextTile.transform);
@@ -634,10 +634,10 @@ namespace _Code._Script
             for (int i = 0; i < board.Length; i++)
             {
                 Tile currentTile = board[i].GetComponent<Tile>();
-                Piece currentPiece = currentTile.Piece;
+                Piece currentPiece = currentTile.GetPieceOnIt();
                 List<int> closeBoardCases = new List<int>();
 
-                if (currentPiece == null)
+                if (!currentPiece)
                     continue;
 
                 float pieceValue = currentPiece.Value;
@@ -677,9 +677,9 @@ namespace _Code._Script
                     {
                         GameObject obj = board[c];
                         Tile tileAdj = obj.GetComponent<Tile>();
-                        Piece pieceAdj = tileAdj.Piece;
+                        Piece pieceAdj = tileAdj.GetPieceOnIt();
 
-                        if (pieceAdj == null)
+                        if (!pieceAdj)
                             continue;
 
                         foreach (Vector2 mouvements in pieceAdj.VectorMovements)
@@ -714,7 +714,7 @@ namespace _Code._Script
         /// Return the other player than the one in argument
         /// </summary>
         /// <param name="pPlayer"></param>
-        public IPlayer SwitchPlayer(IPlayer pPlayer)
+        private IPlayer SwitchPlayer(IPlayer pPlayer)
         {
             return pPlayer == Player1 ? Player2 : Player1;
         }
