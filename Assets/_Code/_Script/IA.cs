@@ -70,7 +70,7 @@ namespace _Code._Script
         public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove, ref int node)
         {
             node++;
-            IPlayer opponent = _gameManager.getPlayerThatsNotHisTurn();
+            IPlayer opponent = _gameManager.GetPlayerThatIsNotHisTurn();
 
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {

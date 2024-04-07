@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace _Code._Script
 {
-    [RequireComponent(typeof(Collider2D), typeof(DragAndDrop))]
+    [RequireComponent(typeof(Collider2D))]
     public abstract class Piece : MonoBehaviour
     {
         private int _id;

@@ -2226,6 +2226,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1863293375051216381, guid: 11959f23e15fb8b46be63aff41eb0426, type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 2612620279323198894, guid: 11959f23e15fb8b46be63aff41eb0426, type: 3}
       propertyPath: m_Name
       value: TurnText
