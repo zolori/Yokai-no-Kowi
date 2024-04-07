@@ -32,7 +32,7 @@ namespace _Code._Script
             LastThreeMove = new List<Vector2>();
             GameManager.Instance.OnPieceMovedEventHandler += SetLastMovement;
             isPlaying = false;
-            PossessedPieces = new Dictionary<int, Piece> { };
+            PossessedPieces = new Dictionary<int, Piece>();
         }
 
         public void SetLastMovement(object receiver, EventPlayerMovement e)
@@ -70,7 +70,7 @@ namespace _Code._Script
         public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove, ref int node)
         {
             node++;
-            IPlayer opponent = _gameManager.GetPlayerThatIsNotHisTurn();
+            IPlayer opponent = _gameManager.GetPlayerThatsNotHisTurn();
 
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {

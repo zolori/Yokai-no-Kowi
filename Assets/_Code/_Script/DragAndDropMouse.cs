@@ -5,8 +5,8 @@ namespace _Code._Script
     public class DragAndDropMouse : MonoBehaviour
     {
         private Vector3 MousePosition { get; set; }
-        private GameObject _lastHoveredArea = null;
-        private GameObject _originArea = null;
+        private GameObject _lastHoveredArea;
+        private GameObject _originArea;
         
         /// <summary>
         /// GIVE THE MOUSE POSITION

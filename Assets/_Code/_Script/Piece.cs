@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
@@ -9,14 +10,14 @@ namespace _Code._Script
         private IPlayer _player;
         private string _name;
         private Sprite _sprite;
-        public string _ownerName;
+        public string ownerName;
 
         public float Value { get; set; }
 
         protected Piece(IPlayer player, Tile iTileToSpawn, int iId)
         {
             _player = player;
-            _ownerName = player.Name;
+            ownerName = player.Name;
             GameManager.Instance.SetPieceAndMoveToParent(this, iTileToSpawn);
             _id = iId;
         }

@@ -5,12 +5,12 @@ namespace _Code._Script
     public class DragAndDropTouch : MonoBehaviour
     {
         private float _dist;
-        private bool _bIsDragging = false;
+        private bool _bIsDragging;
         private Vector3 _offset;
         private Transform _toDrag;
         private Camera _camera;
-        private GameObject _lastHoveredArea = null;
-        private GameObject _originArea = null;
+        private GameObject _lastHoveredArea;
+        private GameObject _originArea;
         private Vector2 TouchPosition { get; set; }
 
 
@@ -130,11 +130,5 @@ namespace _Code._Script
                 _bIsDragging = false;
             }
         }
-        
-        private Vector3 GetTouchPosition()
-        {
-            return _camera.WorldToScreenPoint(transform.position);
-        }
-
     }
 }
