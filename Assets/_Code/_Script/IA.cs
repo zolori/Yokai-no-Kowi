@@ -140,7 +140,6 @@ namespace _Code._Script
                     var t = nextTile.Position;
                     if (!(t.x < 0 || t.x > 2 || t.y < 0 || t.y > 3))
                         tmp.Add(mouvement);
-                    else Debug.Log("NOPE");
                 }
                 if (tmp.Count > 0)
                     newLegalMoves.Add(move.Key, tmp);

@@ -10,12 +10,12 @@ namespace _Code._Script.ChildPieces
             VectorMovements = new[]
                 {new Vector2(-1, 1), new Vector2(0, 1), new Vector2(1, 1), new Vector2(-1, 0),
                     new Vector2(1, 0), new Vector2(0, -1)};
+            Value = 10;
         }
 
 
         public KodamaSamurai(IPlayer player, Tile iTileToSpawn, int iId) : base(player, iTileToSpawn, iId)
         {
-            Value = 10;
         }
     }
 }
