@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 890825436633640530}
   - component: {fileID: 1394538659627871809}
-  - component: {fileID: 6186137861193298295}
   - component: {fileID: -8300744787051495617}
   - component: {fileID: -151998847336478246}
+  - component: {fileID: -5610580366395267283}
   m_Layer: 0
   m_Name: kitsune
   m_TagString: Untagged
@@ -87,18 +87,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6186137861193298295
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1772200006540059436}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ddf74b18cbd21f64e93f39075dd8d897, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!61 &-8300744787051495617
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -156,5 +144,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bc862f8b550c734b9f986930625036c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ownerName: 
+  ownerName: 
   bIsFromPile: 0
+--- !u!114 &-5610580366395267283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1772200006540059436}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba07e5f29297d034dbd43bf6ec5af615, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

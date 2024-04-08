@@ -67,6 +67,8 @@ namespace _Code._Script
                     _originArea.GetComponent<Tile>().SetOriginLocationColor();
                     break;
                 }
+                if(_lastHoveredArea)
+                    _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
             }
         }
 
@@ -89,6 +91,11 @@ namespace _Code._Script
                     
                     GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
                     GameManager.Instance.CurrSelectedPiece = null;
+                    
+                    dropArea.GetComponent<Tile>().SetBaseColor();
+                    _originArea.GetComponent<Tile>().SetBaseColor();
+                    if(_lastHoveredArea)
+                        _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                     
                     _originArea = null;
                     _lastHoveredArea = null;
