@@ -690,6 +690,32 @@ namespace _Code._Script
             return mark;
         }
 
+        public float TestEvaluateBoard()
+        {
+            float mark = 50;
+
+            int numberOfIAPiece = _currPlayer.PossessedPieces.Count;
+            int numberOfOpponentPiece = _inactivePlayer.PossessedPieces.Count;
+
+            mark += (numberOfIAPiece - numberOfOpponentPiece) * 10;
+
+            for (int i = 0; i < board.Length; i++)
+            {
+                Tile currentTile = board[i].GetComponent<Tile>();
+                Piece currentPiece = currentTile.Piece;
+                List<int> closeBoardCases;
+
+                if (currentPiece is Koropokkuru && currentPiece.Player == _currPlayer)
+                {
+                    closeBoardCases = new List<int>(getCloseCaseNumber(i));
+                    if (bIsTileInDanger(currentTile, closeBoardCases))
+                        mark = 0;
+                }
+
+            }
+            return mark;
+        }
+
         #endregion
 
         #endregion
@@ -750,6 +776,27 @@ namespace _Code._Script
             }
 
             return nearPieces;
+        }
+
+        private bool bIsTileInDanger(Tile currentTile, List<int> closeTiles)
+        {
+            foreach (int closeCaseNumber in closeTiles)
+            {
+                Piece closeTilePiece = board[closeCaseNumber].GetComponent<Tile>().Piece;
+
+                if (closeTilePiece.Player == currentTile.Piece.Player || closeTilePiece == null)
+                    continue;
+
+                for (int j = 0; j < closeTilePiece.VectorMovements.Length - 1; j++)
+                {
+                    Tile targetTile = GetTileToMove(closeTilePiece, closeTilePiece.VectorMovements[j]);
+                    if (targetTile != currentTile || targetTile == null)
+                        continue;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

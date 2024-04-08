@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using _Code._Script.Event;
+using TMPro;
 using UnityEngine;
 
 namespace _Code._Script
@@ -67,6 +68,14 @@ namespace _Code._Script
                 BSameThreeLastMove = false;
         }
 
+        /// <summary>
+        /// Algo MinMax
+        /// </summary>
+        /// <param name="depth"></param>
+        /// <param name="maximizingPlayer"></param>
+        /// <param name="bestMove"></param>
+        /// <param name="node"></param>
+        /// <returns></returns>
         public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove, ref int node)
         {
             node++;
