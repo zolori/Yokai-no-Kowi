@@ -9,7 +9,7 @@ namespace _Code._Script
         public bool bisPile;
         public Vector2 Position { get; private set; }
 
-        public Piece Piece { get; set; }
+        public Piece Piece { get; private set; }
 
         private void Start()
         {
@@ -31,6 +31,10 @@ namespace _Code._Script
             if(receiver.Equals(this))
                 Piece = e.NewPiece;
         }
+        public Piece GetPieceOnIt()
+        {
+            return Piece;
+        }
         
         public void SetHoveringColor()
         {
@@ -50,6 +54,5 @@ namespace _Code._Script
         {
             GetComponent<SpriteRenderer>().color = originLocationColor;
         }
-
     }
 }

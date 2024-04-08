@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace _Code._Script
 {
-    public class DragAndDrop : MonoBehaviour
+    public class DragAndDropMouse : MonoBehaviour
     {
         private Vector3 MousePosition { get; set; }
-        private GameObject _lastHoveredArea = null;
-        private GameObject _originArea = null;
+        private GameObject _lastHoveredArea;
+        private GameObject _originArea;
         
         /// <summary>
         /// GIVE THE MOUSE POSITION
@@ -55,8 +55,6 @@ namespace _Code._Script
                     }
                     else
                     {
-                        if(_lastHoveredArea != null)
-                            _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                         _lastHoveredArea = hoveringArea;
                     }
                     break;
@@ -67,9 +65,6 @@ namespace _Code._Script
                     if (_originArea == null)
                         _originArea = hoveringArea;
                     _originArea.GetComponent<Tile>().SetOriginLocationColor();
-                    
-                    if(_lastHoveredArea)
-                        _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                     break;
                 }
             }
@@ -95,10 +90,6 @@ namespace _Code._Script
                     GameManager.Instance.Move(gameObject.GetComponent<Piece>(), dropArea.GetComponent<Tile>());
                     GameManager.Instance.CurrSelectedPiece = null;
                     
-                    dropArea.GetComponent<Tile>().SetBaseColor();
-                    _originArea.GetComponent<Tile>().SetBaseColor();
-                    if(_lastHoveredArea)
-                        _lastHoveredArea.GetComponent<Tile>().SetBaseColor();
                     _originArea = null;
                     _lastHoveredArea = null;
                     

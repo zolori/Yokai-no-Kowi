@@ -1,22 +1,23 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _Code._Script
 {
-    [RequireComponent(typeof(Collider2D), typeof(DragAndDrop))]
+    [RequireComponent(typeof(Collider2D))]
     public abstract class Piece : MonoBehaviour
     {
         private int _id;
         private IPlayer _player;
         private string _name;
         private Sprite _sprite;
-        public string _ownerName;
+        public string ownerName;
 
         public float Value { get; set; }
 
         protected Piece(IPlayer player, Tile iTileToSpawn, int iId)
         {
             _player = player;
-            _ownerName = player.Name;
+            ownerName = player.Name;
             GameManager.Instance.SetPieceAndMoveToParent(this, iTileToSpawn);
             _id = iId;
         }
