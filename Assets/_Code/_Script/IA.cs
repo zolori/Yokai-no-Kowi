@@ -84,7 +84,7 @@ namespace _Code._Script
             if (depth == 0 || _gameManager.CheckWin() != -2)
             {
                 node--;
-                return _gameManager.EvaluateBoard();
+                return _gameManager.TestEvaluateBoard(maximizingPlayer);
             }
 
             if (maximizingPlayer)

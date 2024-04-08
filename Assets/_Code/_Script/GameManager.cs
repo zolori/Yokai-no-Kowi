@@ -27,17 +27,17 @@ namespace _Code._Script
         [SerializeField] private GameObject[] board, pileJ1, pileJ2;
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
         [SerializeField] private UIManager uiManagerReference;
-        [Range(0,4)]
+        [Range(0, 4)]
         [SerializeField] private int depth = 4;
 
-    #endregion
+        #endregion
 
         #region Drag And Drop Stuff
-        
+
         public GameObject CurrSelectedPiece { get; set; }
-        
+
         #endregion
-        
+
         #region Player
 
         private IPlayer _currPlayer, _inactivePlayer, _player1, _player2;
@@ -47,7 +47,7 @@ namespace _Code._Script
         #endregion
 
         public static GameManager Instance;
-        
+
         private KeyValuePair<Piece, KeyValuePair<Vector2, int>> _bestMove;
         private int _node;
         private int GameState { set; get; }
@@ -697,7 +697,7 @@ namespace _Code._Script
             return mark;
         }
 
-        public float TestEvaluateBoard()
+        public float TestEvaluateBoard(bool isIATurn)
         {
             float mark = 50;
 
@@ -710,16 +710,18 @@ namespace _Code._Script
             {
                 Tile currentTile = board[i].GetComponent<Tile>();
                 Piece currentPiece = currentTile.Piece;
-                List<int> closeBoardCases;
 
-                if (currentPiece is Koropokkuru && currentPiece.Player == _currPlayer)
+                if (currentPiece is Koropokkuru)
                 {
-                    closeBoardCases = new List<int>(getCloseCaseNumber(i));
-                    if (bIsTileInDanger(currentTile, closeBoardCases))
-                        mark = 0;
-                }
+                    List<int> closeBoardCases = new List<int>(GetCloseCaseNumber(i));
 
+                    if (currentPiece.Player == _currPlayer && bIsTileInDanger(currentTile, closeBoardCases) && !isIATurn)
+                        mark = 0;
+                    else if (currentPiece.Player != _currPlayer && bIsTileInDanger(currentTile, closeBoardCases) && isIATurn)
+                        mark = 100;
+                }
             }
+
             return mark;
         }
 
