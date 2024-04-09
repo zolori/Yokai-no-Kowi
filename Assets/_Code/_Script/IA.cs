@@ -76,7 +76,7 @@ namespace _Code._Script
         /// <param name="bestMove"></param>
         /// <param name="node"></param>
         /// <returns></returns>
-        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, int>> bestMove, ref int node)
+        public float MinMax(int depth, bool maximizingPlayer, ref KeyValuePair<Piece, KeyValuePair<Vector2, float>> bestMove, ref int node)
         {
             node++;
             IPlayer opponent = _gameManager.GetPlayerThatsNotHisTurn();
@@ -96,16 +96,15 @@ namespace _Code._Script
                 {
                     foreach (Vector2 move in moves.Value)
                     {
-                        KeyValuePair<Vector2, int> pair = new KeyValuePair<Vector2, int>(move, node);
-                        KeyValuePair<Piece, KeyValuePair<Vector2, int>> mouvement = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(moves.Key, pair);
-                        KeyValuePair<Piece, Vector2> truc = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value.Key);
+                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
 
-                        _gameManager.ApplyMove(truc, this);
+                        _gameManager.ApplyMove(mouvement, this);
                         float eval = MinMax(depth - 1, false, ref bestMove, ref node);
                         maxEval = Math.Max(maxEval, eval);
-                        bestMove = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(mouvement.Key, mouvement.Value);
+                        if (bestMove.Value.Value < maxEval || node == 1)
+                            bestMove = new KeyValuePair<Piece, KeyValuePair<Vector2, float>>(mouvement.Key, new KeyValuePair<Vector2, float>(mouvement.Value, maxEval));
                         //Debug.Log("MINMAX***  Piece : " + bestMove.Key + " , déplacement : " + bestMove.Value + ", et le coup vaut : " + eval);
-                        _gameManager.UndoMove(truc);
+                        _gameManager.UndoMove(mouvement);
                     }
                 }
                 node--;
@@ -118,14 +117,12 @@ namespace _Code._Script
                 {
                     foreach (Vector2 move in moves.Value)
                     {
-                        KeyValuePair<Vector2, int> pair = new KeyValuePair<Vector2, int>(move, node);
-                        KeyValuePair<Piece, KeyValuePair<Vector2, int>> mouvement = new KeyValuePair<Piece, KeyValuePair<Vector2, int>>(moves.Key, pair);
-                        KeyValuePair<Piece, Vector2> truc = new KeyValuePair<Piece, Vector2>(mouvement.Key, mouvement.Value.Key);
+                        KeyValuePair<Piece, Vector2> mouvement = new KeyValuePair<Piece, Vector2>(moves.Key, move);
 
-                        _gameManager.ApplyMove(truc, opponent);
+                        _gameManager.ApplyMove(mouvement, opponent);
                         float eval = MinMax(depth - 1, true, ref bestMove, ref node);
                         minEval = Math.Min(minEval, eval);
-                        _gameManager.UndoMove(truc);
+                        _gameManager.UndoMove(mouvement);
                     }
                 }
                 node--;

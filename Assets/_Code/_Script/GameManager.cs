@@ -28,7 +28,7 @@ namespace _Code._Script
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
         [SerializeField] private UIManager uiManagerReference;
         [Range(0, 4)]
-        [SerializeField] private int depth = 3;
+        [SerializeField] private int depth = 4;
 
         #endregion
 
@@ -48,7 +48,7 @@ namespace _Code._Script
 
         public static GameManager Instance;
 
-        private KeyValuePair<Piece, KeyValuePair<Vector2, int>> _bestMove;
+        private KeyValuePair<Piece, KeyValuePair<Vector2, float>> _bestMove;
         private int _node;
         private int GameState { set; get; }
         private int GameMode { get; set; }
@@ -294,8 +294,7 @@ namespace _Code._Script
                 kodamaTmp.GetComponent<Piece>().ID = iPiece.ID;
                 iPiece.Player.PossessedPieces.Remove(iPiece.ID);
                 _currPlayer.PossessedPieces.Add(kodamaTmp.GetComponent<Piece>().ID, kodamaTmp.GetComponent<Piece>());
-                SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(),
-                    ChooseGoodParent(_currPlayer == Player1 ? pileJ1 : pileJ2));
+                SetPieceAndMoveToParent(kodamaTmp.GetComponent<Piece>(), ChooseGoodParent(_currPlayer == Player1 ? pileJ1 : pileJ2));
                 kodamaTmp.GetComponent<Piece>().bIsFromPile = true;
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 Destroy(iPiece.gameObject);
@@ -305,7 +304,6 @@ namespace _Code._Script
                 iPiece.bIsFromPile = true;
                 iPiece.Player.PossessedPieces.Remove(iPiece.ID);
                 IPlayer otherPlayer = SwitchPlayer(iPiece.Player);
-                //Debug.Log("Le " + iPiece.name + " de " + iPiece.Player.Name + " s'est fait manger.\nDonc on remove " + iPiece.name + " des possessed pieces de " + iPiece.Player.Name + " et on ajoute " + iPiece.name + " à celles de " + otherPlayer.Name);
                 otherPlayer.PossessedPieces.Add(iPiece.ID, iPiece);
                 iPiece.ChangePiecePlayer(SwitchPlayer(iPiece.Player));
                 SetPieceAndMoveToParent(iPiece, ChooseGoodParent(_currPlayer == Player1 ? pileJ1 : pileJ2));
@@ -325,7 +323,7 @@ namespace _Code._Script
             foreach (GameObject tile in iPile)
             {
                 t = tile.GetComponentInParent<Tile>();
-
+                Debug.Log($"La tile contient la piece : {t.GetPieceOnIt()}");
                 if (!t.GetPieceOnIt())
                     return t;
             }
@@ -384,6 +382,8 @@ namespace _Code._Script
         public void SetPieceAndMoveToParent(Piece iMyPiece, Tile iNextTile)
         {
             var pieceTransform = iMyPiece.transform;
+            if (iMyPiece == null || iNextTile == null)
+            { }
             var tileTransform = iNextTile.gameObject.transform;
             pieceTransform.parent = tileTransform; // Set parent
             pieceTransform.position = new Vector3(tileTransform.position.x, tileTransform.position.y, 0f); // Move to parent
@@ -418,6 +418,7 @@ namespace _Code._Script
             public Tile CurrTile { get; set; }
             public Tile PrevTile { get; set; }
             public int IndexFromPile { get; set; }
+            //public int whichPile { get; set; }
         }
 
         private Dictionary<Piece, List<Vector2>> _moves;
@@ -556,7 +557,6 @@ namespace _Code._Script
                         if (myPiece.GetComponent<Kodama>())
                             myPiece = TryTransformKodama(myPiece.GetComponent<Kodama>(), nextTile);
                 }
-
                 myMoveHistory.CurrTile = nextTile;
 
                 _movesHistory.Add(myMoveHistory);
@@ -593,12 +593,37 @@ namespace _Code._Script
                 SetPieceAndMoveToParent(myMoveHistory.Piece, myMoveHistory.PrevTile);
                 if (myPieceEaten != null)
                 {
+                    if (myPieceEaten is KodamaSamurai)
+                    {
+                        foreach (GameObject tile in pileJ1)
+                        {
+                            Piece p = tile.GetComponentInParent<Tile>().Piece;
+
+                            if (p == null)
+                                continue;
+
+                            if (p.ID == myPieceEaten.ID)
+                                OnTilePieceChangeEventHandler?.Invoke(tile.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
+                        }
+                        foreach (GameObject tile in pileJ2)
+                        {
+                            Piece p = tile.GetComponentInParent<Tile>().Piece;
+
+                            if (p == null)
+                                continue;
+
+                            if (p.ID == myPieceEaten.ID)
+                                OnTilePieceChangeEventHandler?.Invoke(tile.GetComponentInParent<Tile>(), new EventTilePieceChange(null));
+                        }
+                    }
                     OnTilePieceChangeEventHandler?.Invoke(myPieceEaten.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
                     myPieceEaten.Player.PossessedPieces.Remove(myPieceEaten.ID);
                     IPlayer otherPlayer = SwitchPlayer(myPieceEaten.Player);
                     myPieceEaten.ChangePiecePlayer(otherPlayer);
-                    if(!otherPlayer.PossessedPieces.ContainsKey(myPieceEaten.ID))
+
+                    if (!otherPlayer.PossessedPieces.ContainsKey(myPieceEaten.ID))
                         otherPlayer.PossessedPieces.Add(myPieceEaten.ID, myPieceEaten);
+
                     SetPieceAndMoveToParent(myPieceEaten, myMoveHistory.CurrTile);
                     myPieceEaten.bIsFromPile = false;
                 }
@@ -672,29 +697,29 @@ namespace _Code._Script
                     };
                 }
 
-                if (currentPiece is Koropokkuru)
-                {
-                    closeBoardCases = GetCloseCaseNumber(i);
+                /*                if (currentPiece is Koropokkuru)
+                                {
+                                    closeBoardCases = GetCloseCaseNumber(i);
 
-                    foreach (int c in closeBoardCases)
-                    {
-                        GameObject obj = board[c];
-                        Tile tileAdj = obj.GetComponent<Tile>();
-                        Piece pieceAdj = tileAdj.GetPieceOnIt();
+                                    foreach (int c in closeBoardCases)
+                                    {
+                                        GameObject obj = board[c];
+                                        Tile tileAdj = obj.GetComponent<Tile>();
+                                        Piece pieceAdj = tileAdj.GetPieceOnIt();
 
-                        if (!pieceAdj)
-                            continue;
+                                        if (!pieceAdj)
+                                            continue;
 
-                        foreach (Vector2 mouvements in pieceAdj.VectorMovements)
-                        {
-                            Tile targetTile = GetTileToMove(pieceAdj, mouvements);
-                            if (targetTile != null && currentTile == targetTile)
-                                if (CanMoveIA(pieceAdj, targetTile))
-                                    positionValue += currentPiece.Player == _currPlayer ? -1000 : 1000;
-                        }
-                    }
-                }
-
+                                        foreach (Vector2 mouvements in pieceAdj.VectorMovements)
+                                        {
+                                            Tile targetTile = GetTileToMove(pieceAdj, mouvements);
+                                            if (targetTile != null && currentTile == targetTile)
+                                                if (CanMoveIA(pieceAdj, targetTile))
+                                                    positionValue += currentPiece.Player == _currPlayer ? -1000 : 1000;
+                                        }
+                                    }
+                                }
+                */
                 mark += markAdjustment * positionValue;
             }
             return mark;
@@ -704,15 +729,47 @@ namespace _Code._Script
         {
             float mark = 50;
 
-            int numberOfIAPiece = _currPlayer.PossessedPieces.Count;
-            int numberOfOpponentPiece = _inactivePlayer.PossessedPieces.Count;
-
-            mark += (numberOfIAPiece - numberOfOpponentPiece) * 10;
-
             for (int i = 0; i < board.Length; i++)
             {
                 Tile currentTile = board[i].GetComponent<Tile>();
-                Piece currentPiece = currentTile.Piece;
+                Piece currentPiece = currentTile.GetPieceOnIt();
+
+                int numberOfIAPiece = _currPlayer.PossessedPieces.Count;
+                int numberOfOpponentPiece = _inactivePlayer.PossessedPieces.Count;
+
+                mark += (numberOfIAPiece - numberOfOpponentPiece) * 10;
+
+                if (!currentPiece)
+                    continue;
+
+                float pieceValue = currentPiece.Value;
+
+                float markAdjustment = currentPiece.Player == _currPlayer ? 1 : -1;
+                float positionValue;
+
+                if (currentPiece is KodamaSamurai)
+                {
+                    positionValue = i switch
+                    {
+                        0 or 1 or 2 => pieceValue + 9,
+                        3 or 4 or 5 => pieceValue + 12,
+                        6 or 7 or 8 => pieceValue + 12,
+                        9 or 10 or 11 => pieceValue + 9,
+                        _ => 0
+                    };
+                }
+                else // Covers Koropokkuru, Kodama, and the orther pieces :DDD
+                {
+                    bool isSpecialPiece = currentPiece is Koropokkuru || currentPiece is Kodama;
+                    positionValue = i switch
+                    {
+                        0 or 1 or 2 => pieceValue + (_currPlayer == Player1 ? 0 : (isSpecialPiece ? 9 : 6)),
+                        3 or 4 or 5 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 3 : 2) : (isSpecialPiece ? 6 : 4)),
+                        6 or 7 or 8 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 6 : 4) : (isSpecialPiece ? 3 : 2)),
+                        9 or 10 or 11 => pieceValue + (_currPlayer == Player1 ? (isSpecialPiece ? 9 : 6) : 0),
+                        _ => 0
+                    };
+                }
 
                 if (currentPiece is Koropokkuru)
                 {
@@ -723,10 +780,12 @@ namespace _Code._Script
                     else if (currentPiece.Player != _currPlayer && bIsTileInDanger(currentTile, closeBoardCases) && isIATurn)
                         mark = +50;
                 }
-            }
-            Debug.Log($"Tour IA? {isIATurn} / nb pieces IA : {numberOfIAPiece}, nb pieces H : {numberOfOpponentPiece}");
-            Debug.Log($"mark : {mark}");
 
+                mark += markAdjustment * positionValue;
+            }
+            /*            Debug.Log($"Tour IA? {isIATurn} / nb pieces IA : {numberOfIAPiece}, nb pieces H : {numberOfOpponentPiece}");
+                        Debug.Log($"mark : {mark}");
+            */
             return mark;
         }
 

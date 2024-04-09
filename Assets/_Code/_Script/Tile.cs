@@ -35,6 +35,11 @@ namespace _Code._Script
         {
             return Piece;
         }
+
+        public void setPieceOnIt(Piece p)
+        {
+            Piece = p;
+        }
         
         public void SetHoveringColor()
         {
