@@ -28,7 +28,7 @@ namespace _Code._Script
         [SerializeField] private GameObject kodama, tanuki, koropokkuru, kitsune, kodamaSamurai;
         [SerializeField] private UIManager uiManagerReference;
         [Range(0, 4)]
-        [SerializeField] private int depth = 4;
+        [SerializeField] private int depth = 3;
 
         #endregion
 
@@ -163,9 +163,9 @@ namespace _Code._Script
             if (_currPlayer is IA ia)
             {
                 bestMoveValue = ia.MinMax(depth, true, ref _bestMove, ref _node);
-                /*                Debug.Log($"Best move value : {bestMoveValue}, piece : {bestMove.Key}, deplacement : {bestMove.Value},  node :  {node}, " +
-                                    $"position currente : {bestMove.Key.GetComponentInParent<Transform>().position} position future : {GetTileToMove(bestMove.Key, bestMove.Value.Key).Position}");
-                */
+                Debug.Log($"Best move value : {bestMoveValue}, piece : {_bestMove.Key}, deplacement : {_bestMove.Value},  node :  {_node}, \n" +
+                    $"position currente : {_bestMove.Key.GetComponentInParent<Transform>().position} position future : {GetTileToMove(_bestMove.Key, _bestMove.Value.Key).Position}");
+
                 Move(_bestMove.Key, GetTileToMove(_bestMove.Key, _bestMove.Value.Key));
             }
         }
@@ -595,7 +595,10 @@ namespace _Code._Script
                 {
                     OnTilePieceChangeEventHandler?.Invoke(myPieceEaten.GetComponentInParent<Tile>(), new EventTilePieceChange(null)); // Update Tile piece variable ref
                     myPieceEaten.Player.PossessedPieces.Remove(myPieceEaten.ID);
-                    myPieceEaten.ChangePiecePlayer(SwitchPlayer(myPieceEaten.Player));
+                    IPlayer otherPlayer = SwitchPlayer(myPieceEaten.Player);
+                    myPieceEaten.ChangePiecePlayer(otherPlayer);
+                    if(!otherPlayer.PossessedPieces.ContainsKey(myPieceEaten.ID))
+                        otherPlayer.PossessedPieces.Add(myPieceEaten.ID, myPieceEaten);
                     SetPieceAndMoveToParent(myPieceEaten, myMoveHistory.CurrTile);
                     myPieceEaten.bIsFromPile = false;
                 }
@@ -716,11 +719,22 @@ namespace _Code._Script
                     List<int> closeBoardCases = new List<int>(GetCloseCaseNumber(i));
 
                     if (currentPiece.Player == _currPlayer && bIsTileInDanger(currentTile, closeBoardCases) && !isIATurn)
-                        mark = 0;
+                        mark = -50;
                     else if (currentPiece.Player != _currPlayer && bIsTileInDanger(currentTile, closeBoardCases) && isIATurn)
-                        mark = 100;
+                        mark = +50;
                 }
             }
+            Debug.Log($"Tour IA? {isIATurn} / nb pieces IA : {numberOfIAPiece}, nb pieces H : {numberOfOpponentPiece}");
+            Debug.Log($"mark : {mark}");
+
+            return mark;
+        }
+
+        public float reTestEvaluateBoard(bool isIATurn)
+        {
+            float mark = 50;
+
+
 
             return mark;
         }
@@ -793,7 +807,10 @@ namespace _Code._Script
             {
                 Piece closeTilePiece = board[closeCaseNumber].GetComponent<Tile>().Piece;
 
-                if (closeTilePiece.Player == currentTile.Piece.Player || closeTilePiece == null)
+                if (closeTilePiece == null)
+                    continue;
+
+                if (closeTilePiece.Player == currentTile.Piece.Player)
                     continue;
 
                 for (int j = 0; j < closeTilePiece.VectorMovements.Length - 1; j++)
